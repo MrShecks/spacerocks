@@ -38,6 +38,8 @@ class Game (ABC):
 
             pygame.display.flip ()
 
+        pygame.quit ()
+
     @abstractmethod
     def update (self, dt):
         pass
