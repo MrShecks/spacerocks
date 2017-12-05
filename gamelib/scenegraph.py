@@ -55,6 +55,8 @@ class SceneGroup (SceneNode):
 
     def __list_insert (self, list, value, lessThan):
 
+        # TODO: See if something like this already exists in Python
+
         """
             Inserts an element into a list in a sorted order
             Note: This method assumes that any elements already

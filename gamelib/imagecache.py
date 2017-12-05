@@ -19,6 +19,8 @@ class ImageCache:
             if ImageCache._DEBUG:
                 print ('DBG: ImageCache:add_image (): Filename=', filename)
 
+        return image
+
     def get_image (self, tag):
         return self._images.get (tag)
 
