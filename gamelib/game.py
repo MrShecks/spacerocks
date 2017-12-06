@@ -9,7 +9,7 @@ class Game (ABC):
     def __init__ (self, width, height, title = '', fpslock = 60):
         pygame.init ()
 
-        self._canvas = pygame.display.set_mode ((width, height))
+        self._surface = pygame.display.set_mode ((width, height))
         self._fpslock = fpslock
 
         pygame.display.set_caption (title)
@@ -34,7 +34,9 @@ class Game (ABC):
                     self.on_mouse_up (event.pos, event)
 
             self.update (dt / 1000.0)
-            self.draw (self._canvas)
+
+            self._surface.fill ((0, 0, 0))
+            self.draw (self._surface)
 
             pygame.display.flip ()
 

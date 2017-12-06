@@ -8,6 +8,8 @@ from gamelib import imagecache
 
 from player import PlayerShip
 
+from weapons import Missile
+
 class Background (scene.SceneNode):
 
     SCROLL_SPEED = 50
@@ -74,6 +76,8 @@ class Spacerocks (game.Game):
 
         'debris'            : 'debris.png',
         'player_ship'       : 'space_ship.png',
+        'bullet_set'        : 'bullet_set.png',
+        'missile_set'       : 'missile_set.png',
     }
 
     def __init__ (self):
@@ -94,11 +98,15 @@ class Spacerocks (game.Game):
 
         self._scene.add_node (self._background, Spacerocks.SCENE_LAYER_BACKGROUND)
 
-        self._playerShip = PlayerShip (self._images.get_image ('player_ship'), Spacerocks.WINDOW_RECT)
+        self._playerShip = PlayerShip (self._images, Spacerocks.WINDOW_RECT, self._scene)
         self._scene.add_node (self._playerShip, Spacerocks.SCENE_LAYER_PLAYER_SHIP)
 
         self._background.set_foreground(self._images.get_image('debris'))
-        self._background.set_background (random.randrange (self._background.count ()))
+
+        #self._background.set_background (random.randrange (self._background.count ()))
+
+        # DEBUG: Using background 11 for the moment, easier to see projectiles
+        self._background.set_background (11)
 
         self._playerShip.set_center (Spacerocks.WINDOW_RECT.centerx, Spacerocks.WINDOW_RECT.centery)
 
@@ -109,26 +117,33 @@ class Spacerocks (game.Game):
         self._scene.draw (canvas)
 
     def on_key_down(self, key, event):
-        print ('Key Down: Key=', key)
 
         if key == pygame.K_UP:
             self._playerShip.set_thrust (True)
         elif key == pygame.K_LEFT:
-            self._playerShip.rotate (PlayerShip.ROTATE_VELOCITY)
+            self._playerShip.rotate (PlayerShip.DEFAULT_ROTATE_VELOCITY)
         elif key == pygame.K_RIGHT:
-            self._playerShip.rotate (-PlayerShip.ROTATE_VELOCITY)
+            self._playerShip.rotate (-PlayerShip.DEFAULT_ROTATE_VELOCITY)
 
     def on_key_up(self, key, event):
-        print ('Key Up: Key=', key)
 
         if key == pygame.K_UP:
             self._playerShip.set_thrust (False)
         elif key == pygame.K_LEFT:
-            self._playerShip.rotate (-PlayerShip.ROTATE_VELOCITY)
+            self._playerShip.rotate (-PlayerShip.DEFAULT_ROTATE_VELOCITY)
         elif key == pygame.K_RIGHT:
-            self._playerShip.rotate (PlayerShip.ROTATE_VELOCITY)
+            self._playerShip.rotate (PlayerShip.DEFAULT_ROTATE_VELOCITY)
+        elif key == pygame.K_SPACE:
+            self._playerShip.fire_weapon ()
+
+        #
+        # DEBUGGING
+        #
+
         elif key == pygame.K_b:
             self._background.set_background (random.randrange (self._background.count ()))
+        elif key == pygame.K_f:
+            self._playerShip.toggle_friction ();
 
     def on_quit (self):
         return True
