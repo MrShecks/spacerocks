@@ -10,7 +10,7 @@ from player import PlayerShip
 
 from weapons import Missile
 
-class Background (scene.SceneNode):
+class Background (scene.StaticSprite):
 
     SCROLL_SPEED = 50
 
@@ -134,16 +134,20 @@ class Spacerocks (game.Game):
         elif key == pygame.K_RIGHT:
             self._playerShip.rotate (PlayerShip.DEFAULT_ROTATE_VELOCITY)
         elif key == pygame.K_SPACE:
-            self._playerShip.fire_weapon ()
+            self._playerShip.fire_weapon (PlayerShip.PRIMARY_WEAPON)
+
+
 
         #
         # DEBUGGING
         #
 
+        elif key == pygame.K_x:
+            self._playerShip.fire_weapon (PlayerShip.SECONDARY_WEAPON)
         elif key == pygame.K_b:
             self._background.set_background (random.randrange (self._background.count ()))
         elif key == pygame.K_f:
-            self._playerShip.toggle_friction ();
+            self._playerShip.toggle_friction ()
 
     def on_quit (self):
         return True

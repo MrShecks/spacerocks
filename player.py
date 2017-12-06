@@ -1,12 +1,14 @@
 import pygame
 import math
 
-from gamelib.scene import SceneSprite
+from gamelib.scene import MovableSprite
 from gamelib.tileset import TileSet
 from weapons import SingleShot
+from weapons import DoubleShot
+from weapons import RadialShot
 
 
-class PlayerShip (SceneSprite):
+class PlayerShip (MovableSprite):
 
     WIDTH               = 90
     HEIGHT              = 90
@@ -15,14 +17,15 @@ class PlayerShip (SceneSprite):
     TILE_SHIP_THRUST    = 1
     TILE_SHIP_SHIELD    = 2
 
+    PRIMARY_WEAPON      = 0
+    SECONDARY_WEAPON    = 1
+
     DEFAULT_THRUST_VELOCITY     = 25.0      # Acceleration in pixels per second
     DEFAULT_THRUST_FRICTION     = 2.0       # Deceleration in pixels per second
     DEFAULT_ROTATE_VELOCITY     = 200       # Rotation speed in degrees per second
 
     def __init__ (self, image_cache, screen_rect, scene):
         super ().__init__ (PlayerShip.WIDTH, PlayerShip.HEIGHT)
-
-        self._scene = scene
 
         self._angle = 0
         self._thrust = False
@@ -38,25 +41,25 @@ class PlayerShip (SceneSprite):
         self._bullets = TileSet (image_cache.get_image ('missile_set'), 39, 39)
 
         self._projectiles = pygame.sprite.Group ()
-        self._primary_weapon = SingleShot (self, image_cache)
 
-        # photon = Photon (100, 100, self._bullets.get_tile (0), 60)
-        # photon.add (self._projectiles)
+        self._primary_weapon = SingleShot (self, image_cache)
+        #self._primary_weapon = DoubleShot (self, image_cache)
+        self._secondary_weapon = RadialShot (self, image_cache)
 
     def rotate (self, rotate_velocity):
         self._rotate_velocity += rotate_velocity
 
-    def fire_weapon (self):
-        print ('PlayerShip::fire_weapon ()')
+    def fire_weapon (self, type):
+        print ('PlayerShip::fire_weapon (): Type=', type)
 
+        weapon = self._primary_weapon if type == PlayerShip.PRIMARY_WEAPON else self._secondary_weapon
         projectiles = []
 
-
-        if self._primary_weapon.can_fire ():
-            projectiles = self._primary_weapon.fire ()
+        if weapon.can_fire ():
+            projectiles = weapon.fire ()
 
         if projectiles:
-            self._scene.add_nodes (projectiles, 5)
+            self.scene.add_nodes (projectiles, self.scene_layer)
 
 
     def set_thrust (self, thrust):
@@ -104,8 +107,8 @@ class PlayerShip (SceneSprite):
         self._rect.width = self._image.get_width ()
         self._rect.height = self._image.get_height ()
 
-
     def __get_forward_vector (self, angle):
+        # FIXME: Why does PyCharm not recognise Vector2 (x,y) constructor?
         return pygame.math.Vector2 (math.cos (angle), -math.sin (angle))
 
     def __rotate_around_center (self, image, angle):

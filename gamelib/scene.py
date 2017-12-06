@@ -1,6 +1,6 @@
 import pygame
 
-class SceneNode (pygame.sprite.Sprite):
+class StaticSprite (pygame.sprite.Sprite):
 
 
     def __init__ (self, width, height, has_alpha = True):
@@ -10,6 +10,9 @@ class SceneNode (pygame.sprite.Sprite):
         self._image = pygame.Surface ((width, height), flags)
         self._rect = self._image.get_rect ()
 
+        self._scene = None
+        self._scene_layer = -1
+
     @property
     def image (self):
         return self._image
@@ -18,9 +21,19 @@ class SceneNode (pygame.sprite.Sprite):
     def rect (self):
         return self._rect
 
+    @property
+    def scene (self):
+        return self._scene
 
+    @property
+    def scene_layer (self):
+        return self._scene_layer
 
-class SceneSprite (SceneNode):
+    def _add_to_scene (self, scene, scene_layer):
+        self._scene = scene
+        self._scene_layer = scene_layer
+
+class MovableSprite (StaticSprite):
 
 
     def __init__ (self, width, height, has_alpha = True):
@@ -49,8 +62,8 @@ class SceneGraph:
         self._nodes = pygame.sprite.LayeredUpdates ()
 
     def add_node (self, node, scene_layer = -1):
+        node._add_to_scene (self, scene_layer)
         self._nodes.add (node, layer=scene_layer)
-        print ('SceneGraph::add_node (): Node=', node, ' Layer=', scene_layer)
 
     def add_nodes (self, nodes, scene_layer = -1):
         for node in nodes:
