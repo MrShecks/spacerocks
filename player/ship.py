@@ -3,12 +3,13 @@ import math
 
 from gamelib.scene import MovableSprite
 from gamelib.tileset import TileSet
-from weapons import SingleShot
-from weapons import DoubleShot
-from weapons import RadialShot
+from player.weapons import SingleShot
+from player.weapons import RadialShot
 
 
 class PlayerShip (MovableSprite):
+
+    _DEBUG              = True
 
     WIDTH               = 90
     HEIGHT              = 90
@@ -37,8 +38,8 @@ class PlayerShip (MovableSprite):
 
         self._screen_rect = screen_rect
 
-        self._tiles = TileSet (image_cache.get_image ('player_ship'), PlayerShip.WIDTH, PlayerShip.HEIGHT)
-        self._bullets = TileSet (image_cache.get_image ('missile_set'), 39, 39)
+        self._tiles = TileSet (image_cache.get ('player_ship'), PlayerShip.WIDTH, PlayerShip.HEIGHT)
+        self._bullets = TileSet (image_cache.get ('missile_set'), 39, 39)
 
         self._projectiles = pygame.sprite.Group ()
 
@@ -74,7 +75,8 @@ class PlayerShip (MovableSprite):
     def get_forward_vector (self):
         return self.__get_forward_vector (math.radians (self._angle))
 
-    def update (self, dt):
+    # def update (self, dt):
+    def scene_update (self, dt):
 
         # Update the rotation angle, clamping to 2*PI radians (360 degrees)
         self._angle = (self._angle + (self._rotate_velocity * dt)) % 360
@@ -101,6 +103,7 @@ class PlayerShip (MovableSprite):
 
         frame = PlayerShip.TILE_SHIP_THRUST if self._thrust else PlayerShip.TILE_SHIP
         self._image = self.__rotate_around_center (self._tiles.get_tile (frame), self._angle)
+
 
         # Update the sprite rectangle in case the width and height was change by the rotation
         # This should only be an issue if the sprite isn't exactly square

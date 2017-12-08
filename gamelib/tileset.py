@@ -4,6 +4,8 @@ class TileSet:
 
 
     def __init__ (self, image, tile_width, tile_height):
+        assert image is not None
+
         self._tile_width = tile_width
         self._tile_height = tile_height
         self._tiles = []

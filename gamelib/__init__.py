@@ -1,4 +1,7 @@
-from gamelib import game
-from gamelib import scene
-from gamelib import imagecache
-from gamelib import tileset
+
+"""
+    Dubbing flags for gamelib modules
+"""
+
+_DEBUG_SCENE    = False
+_DEBUG_ASSETS   = False

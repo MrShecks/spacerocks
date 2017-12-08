@@ -1,29 +1,29 @@
-from abc import ABC, abstractmethod
 import pygame
 
 
-class Game (ABC):
+class Game (object):
 
-    _is_running = False
-
-    def __init__ (self, width, height, title = '', fpslock = 60):
+    def __init__ (self, width, height, title = '', fps_lock = 60):
         pygame.init ()
 
-        self._surface = pygame.display.set_mode ((width, height))
-        self._fpslock = fpslock
+        self.__surface = pygame.display.set_mode ((width, height))
+        self.__fps_lock = fps_lock
+
+        self.__is_running = False
+        self.__active_scene = None
 
         pygame.display.set_caption (title)
 
     def run (self):
-        self._is_running = True
+        self.__is_running = True
         clock = pygame.time.Clock ()
 
-        while self._is_running:
-            dt = clock.tick (self._fpslock)
+        while self.__is_running:
+            dt = clock.tick (self.__fps_lock)
 
             for event in pygame.event.get ():
                 if event.type == pygame.QUIT:
-                    self._is_running = not self.on_quit ()
+                    self.__is_running = not self.on_quit ()
                 elif event.type == pygame.KEYDOWN:
                     self.on_key_down(event.key, event)
                 elif event.type == pygame.KEYUP:
@@ -33,22 +33,23 @@ class Game (ABC):
                 elif event.type == pygame.MOUSEBUTTONUP:
                     self.on_mouse_up (event.pos, event)
 
-            self.update (dt / 1000.0)
-
-            self._surface.fill ((0, 0, 0))
-            self.draw (self._surface)
+            if self.__active_scene:
+                self.__active_scene.update (dt / 1000.0)
+                self.__active_scene.draw (self.__surface)
 
             pygame.display.flip ()
 
         pygame.quit ()
 
-    @abstractmethod
-    def update (self, dt):
-        pass
+    def set_active_scene (self, scene):
 
-    @abstractmethod
-    def draw (self, canvas):
-        pass
+        if scene:
+            if self.__active_scene:
+                self.__active_scene.scene_deactivated ()
+
+            self.__active_scene = scene
+            self.__active_scene.scene_activated ()
+
 
     def on_quit (self):
         return False

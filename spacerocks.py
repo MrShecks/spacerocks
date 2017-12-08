@@ -1,16 +1,38 @@
+"""
+    Space Rocks a simple 'Asteroids' style space shooter
+
+    Graphics Credits:
+
+    Base Rice Rocks assets provided by Kim Lathrop and Rice University
+
+    Additiional asset credits:
+
+    Kenny		    - http://www.kenney.nl
+    Rawdanitsu 	    - http://tinyurl.com/olbstsf, http://tinyurl.com/ogs94te
+    Bart 		    - http://tinyurl.com/2vvf85p
+    NenadSimic 	    - http://tinyurl.com/nf9ycac
+    Julien 		    - http://tinyurl.com/nvt7ro5
+    Mike Koenig	    - http://tinyurl.com/pm38lbo
+    Skorpio 	    - http://tinyurl.com/ngkj7ch
+
+    Assets used under Public Domain or Creative Commons License (http://tinyurl.com/2dkzmd)
+
+"""
+
+
 import os
 import random
 import pygame
 
 from gamelib import game
 from gamelib import scene
-from gamelib import imagecache
 
-from player import PlayerShip
+from gamelib import assets
 
-from weapons import Missile
+from player.ship import PlayerShip
 
-class Background (scene.StaticSprite):
+
+class Background (scene.Sprite):
 
     SCROLL_SPEED = 50
 
@@ -37,7 +59,7 @@ class Background (scene.StaticSprite):
     def count (self):
         return len (self._backgrounds)
 
-    def update (self, dt):
+    def scene_update (self, dt):
         self._scroll_offset = (self._scroll_offset + (Background.SCROLL_SPEED * dt)) % self._rect.width
         self._image.blit (self._backgrounds[self._current_index], (0, 0))
 
@@ -52,6 +74,7 @@ class Spacerocks (game.Game):
 
     WINDOW_WIDTH                = 960
     WINDOW_HEIGHT               = 720
+
     WINDOW_RECT                 = pygame.Rect (0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
 
     FPS                         = 60
@@ -60,24 +83,19 @@ class Spacerocks (game.Game):
     SCENE_LAYER_PLAYER_SHIP     = 1
 
 
-    IMAGES = {
-        'background_01'     : 'background_01.jpg',
-        'background_02'     : 'background_02.jpg',
-        'background_03'     : 'background_03.jpg',
-        'background_04'     : 'background_04.jpg',
-        'background_05'     : 'background_05.jpg',
-        'background_06'     : 'background_06.jpg',
-        'background_07'     : 'background_07.jpg',
-        'background_08'     : 'background_08.jpg',
-        'background_09'     : 'background_09.jpg',
-        'background_10'     : 'background_10.jpg',
-        'background_11'     : 'background_11.jpg',
-        'background_12'     : 'background_12.jpg',
-
-        'debris'            : 'debris.png',
-        'player_ship'       : 'space_ship.png',
-        'bullet_set'        : 'bullet_set.png',
-        'missile_set'       : 'missile_set.png',
+    BACKGROUNDS = {
+        'background_01',
+        'background_02',
+        'background_03',
+        'background_04',
+        'background_05',
+        'background_06',
+        'background_07',
+        'background_08',
+        'background_09',
+        'background_10',
+        'background_11',
+        'background_12'
     }
 
     def __init__ (self):
@@ -86,22 +104,22 @@ class Spacerocks (game.Game):
 
         assets_path = os.path.join (os.path.dirname (__file__), 'assets')
 
-        self._scene = scene.SceneGraph ()
-        self._images = imagecache.ImageCache (os.path.join (assets_path, 'images'))
+        self._scene = scene.Scene ()
+
+        self._image_cache = assets.ImageCache ()
+        self._image_cache.load (os.path.join (assets_path, 'images'))
+
         self._background = Background (Spacerocks.WINDOW_WIDTH, Spacerocks.WINDOW_HEIGHT)
 
-        for tag, filename in self.IMAGES.items ():
-            image = self._images.add_image (tag, filename)
-
-            if tag.startswith ('background_'):
-                self._background.add_background (image)
+        for tag in Spacerocks.BACKGROUNDS:
+            self._background.add_background (self._image_cache.get (tag))
 
         self._scene.add_node (self._background, Spacerocks.SCENE_LAYER_BACKGROUND)
 
-        self._playerShip = PlayerShip (self._images, Spacerocks.WINDOW_RECT, self._scene)
+        self._playerShip = PlayerShip (self._image_cache, Spacerocks.WINDOW_RECT, self._scene)
         self._scene.add_node (self._playerShip, Spacerocks.SCENE_LAYER_PLAYER_SHIP)
 
-        self._background.set_foreground(self._images.get_image('debris'))
+        self._background.set_foreground(self._image_cache.get ('debris'))
 
         #self._background.set_background (random.randrange (self._background.count ()))
 
@@ -110,11 +128,7 @@ class Spacerocks (game.Game):
 
         self._playerShip.set_center (Spacerocks.WINDOW_RECT.centerx, Spacerocks.WINDOW_RECT.centery)
 
-    def update (self, dt):
-        self._scene.update (dt)
-
-    def draw (self, canvas):
-        self._scene.draw (canvas)
+        self.set_active_scene (self._scene)
 
     def on_key_down(self, key, event):
 
