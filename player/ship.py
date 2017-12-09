@@ -21,12 +21,15 @@ class PlayerShip (MovableSprite):
     PRIMARY_WEAPON      = 0
     SECONDARY_WEAPON    = 1
 
-    DEFAULT_THRUST_VELOCITY     = 25.0      # Acceleration in pixels per second
+    DEFAULT_THRUST_VELOCITY     = 40.0      # Acceleration in pixels per second
     DEFAULT_THRUST_FRICTION     = 2.0       # Deceleration in pixels per second
     DEFAULT_ROTATE_VELOCITY     = 200       # Rotation speed in degrees per second
 
-    def __init__ (self, image_cache, screen_rect, scene):
+    def __init__ (self, x, y, image_cache, screen_rect, scene):
         super ().__init__ (PlayerShip.WIDTH, PlayerShip.HEIGHT)
+
+        self.rect.centerx = x
+        self.rect.centery = y
 
         self._angle = 0
         self._thrust = False
@@ -61,6 +64,7 @@ class PlayerShip (MovableSprite):
 
         if projectiles:
             self.scene.add_nodes (projectiles, self.scene_layer)
+            self._projectiles.add (projectiles)
 
 
     def set_thrust (self, thrust):
@@ -69,10 +73,12 @@ class PlayerShip (MovableSprite):
     def toggle_friction (self):
         self._has_friction = not self._has_friction
 
-    def get_projectiles (self):
+    @property
+    def projectiles (self):
         return self._projectiles
 
-    def get_forward_vector (self):
+    @property
+    def forward (self):
         return self.__get_forward_vector (math.radians (self._angle))
 
     # def update (self, dt):
@@ -87,28 +93,24 @@ class PlayerShip (MovableSprite):
             self._velocity.x += (forward.x * self._thrust_velocity * dt)
             self._velocity.y += (forward.y * self._thrust_velocity * dt)
 
-        # Update the ships position
-        self._rect.centerx = (self._rect.centerx + self._velocity.x) % self._screen_rect.width
-        self._rect.centery = (self._rect.centery + self._velocity.y) % self._screen_rect.height
-
         # FIXME: Friction should eventually bring the velocity down to 0 instead of continually decreasing
 
         # Apply friction to the ships velocity
         if self._has_friction:
-            self._velocity.x *= (1.0 - (self._thrust_friction * dt))
-            self._velocity.y *= (1.0 - (self._thrust_friction * dt))
-
-
-        # TODO: Will need to draw the ships shield if it's on
+            self.velocity.x *= (1.0 - (self._thrust_friction * dt))
+            self.velocity.y *= (1.0 - (self._thrust_friction * dt))
 
         frame = PlayerShip.TILE_SHIP_THRUST if self._thrust else PlayerShip.TILE_SHIP
-        self._image = self.__rotate_around_center (self._tiles.get_tile (frame), self._angle)
-
+        self.image = self.__rotate_around_center (self._tiles.get_tile (frame), self._angle)
 
         # Update the sprite rectangle in case the width and height was change by the rotation
         # This should only be an issue if the sprite isn't exactly square
-        self._rect.width = self._image.get_width ()
-        self._rect.height = self._image.get_height ()
+        self.rect.width = self.image.get_width ()
+        self.rect.height = self.image.get_height ()
+
+        # If the ship runs off the edge of the screen it should warp to the opposite side
+        self.rect.centerx = self.rect.centerx % self._screen_rect.width
+        self.rect.centery = self.rect.centery % self._screen_rect.height
 
     def __get_forward_vector (self, angle):
         # FIXME: Why does PyCharm not recognise Vector2 (x,y) constructor?

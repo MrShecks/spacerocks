@@ -10,7 +10,7 @@ class AssetCache (abc.ABC):
     """
         AssetCache
 
-        Base class for simple dictionary based asset cache and loaded
+        Base class for simple dictionary based asset cache and loading
 
     """
     def __init__ (self):

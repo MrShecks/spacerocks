@@ -1,7 +1,8 @@
 import gamelib
 import pygame
 
-_DEBUG_SPRITE_BOUNDS = gamelib._DEBUG_SCENE and True
+_DEBUG_SPRITE_BOUNDS        = gamelib._DEBUG_SCENE and True
+_DEBUG_SPRITE_COLLISIONS    = gamelib._DEBUG_SCENE and True
 
 class Sprite (pygame.sprite.Sprite):
 
@@ -16,9 +17,11 @@ class Sprite (pygame.sprite.Sprite):
     def __init__ (self, width, height, has_alpha = True):
         super ().__init__ ()
 
-        flags = pygame.SRCALPHA if has_alpha else 0
-        self._image = pygame.Surface ((width, height), flags)
-        self._rect = self._image.get_rect ()
+        flags = pygame.HWSURFACE
+        flags |= pygame.SRCALPHA if has_alpha else 0
+
+        self.__image = pygame.Surface ((width, height), flags)
+        self.__rect = self.__image.get_rect ()
 
         self._scene_layer = -1
         self._scene = None
@@ -61,7 +64,12 @@ class Sprite (pygame.sprite.Sprite):
         self.scene_update (dt)
 
         if _DEBUG_SPRITE_BOUNDS:
-            pygame.draw.rect (self._image, (255, 0, 0), [0, 0, self._rect.width, self._rect.height ], 1)
+            pygame.draw.rect (self.image, (200, 0, 0), [0, 0, self.rect.width, self.rect.height ], 1)
+
+        if _DEBUG_SPRITE_COLLISIONS:
+            radius = max (self.rect.width, self.rect.height) // 2
+            pygame.draw.circle ( self.image, (0, 200, 0), (self.rect.width // 2, self.rect.height // 2), radius, 1)
+
 
     @property
     def image (self):
@@ -73,7 +81,11 @@ class Sprite (pygame.sprite.Sprite):
             :return:                The sprites drawing surface
         """
 
-        return self._image
+        return self.__image
+
+    @image.setter
+    def image (self, image):
+        self.__image = image
 
     @property
     def rect (self):
@@ -85,7 +97,7 @@ class Sprite (pygame.sprite.Sprite):
             :return:                The sprites bounding rect
         """
 
-        return self._rect
+        return self.__rect
 
     @property
     def scene (self):
@@ -115,26 +127,92 @@ class MovableSprite (Sprite):
         super ().__init__ (width, height, has_alpha)
 
         self._velocity = pygame.math.Vector2 ()
+        self._angle = 0
 
-    def get_velocity (self):
+    def update (self, dt):
+        super ().update (dt)
+
+        self.rect.centerx = (self.rect.centerx + self.velocity.x)
+        self.rect.centery = (self.rect.centery + self.velocity.y)
+
+    @property
+    def velocity (self):
         return self._velocity
 
-    def get_bounding_rect (self):
-        return self._rect
+    @velocity.setter
+    def velocity (self, velocity):
+        self._velocity = velocity
 
-    def set_position (self, x, y):
-        self._rect = self._rect.move (x, y)
+    @property
+    def angle (self):
+        return self._angle
 
-    def set_center (self, x, y):
-        self._rect.centerx = x
-        self._rect.centery = y
+    @angle.setter
+    def angle (self, angle):
+        self._angle = angle
+
+
+class AnimatedSprite (MovableSprite):
+
+    def __init__ (self, frames, frame_width, frame_height, frame_speed, has_alpha = True):
+        super ().__init__ (frame_width, frame_height, has_alpha)
+
+        self._frames = frames
+        self._frame_speed = frame_speed
+
+        self._current_frame = 0
+        self._frame_timer = 0.0
+
+        # TODO: Add support for specifying sub frames, sequence direction and loop control
+
+#     def update (self, dt):
+#         self._frame_timer = (self._frame_timer + ((1 / self._frame_speed) * dt)) % len (self._frames)
+#
+# #        print (self._frame_timer, self.frame_index)
+#
+#
+#         super ().update (dt)
+
+    def update (self, dt):
+        self._frame_timer = (self._frame_timer + ((1 / self._frame_speed) * dt)) % len (self._frames)
+
+        # FIXME: Temporary hack just to get explosions working for the moment
+
+        if self._current_frame != self.frame_index:
+            self._current_frame = self.frame_index
+
+            if self._current_frame == 0:
+                self.animation_start ()
+            elif self._current_frame == len (self._frames) - 1:
+                self.animation_end ()
+
+        super ().update (dt)
+
+    @property
+    def frame_index (self):
+        return int (self._frame_timer)
+
+    @property
+    def image (self):
+        return self._frames[self.frame_index]
+
+    def animation_start (self):
+        pass
+
+    def animation_end (self):
+        pass
 
 
 class Scene (object):
 
 
-    def __init__ (self):
+    def __init__ (self, game):
+        self._game = game
         self._nodes = pygame.sprite.LayeredUpdates ()
+
+    @property
+    def game (self):
+        return self._game
 
     def add_node (self, node, scene_layer = -1):
         node.scene_add (self, scene_layer)
@@ -155,3 +233,16 @@ class Scene (object):
 
     def scene_deactivated (self):
         pass
+
+    def on_key_down (self, key, event):
+        pass
+
+    def on_key_up (self, key, event):
+        pass
+
+    def on_mouse_down (self, pos, event):
+        pass
+
+    def on_mouse_up (self, pos, event):
+        pass
+

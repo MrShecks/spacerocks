@@ -39,20 +39,19 @@ class Missile (scene.MovableSprite):
     def __init__ (self, x, y, image, velocity, angle, time_to_live = DEFAULT_TIME_TO_LIVE):
         super ().__init__ (image.get_width (), image.get_height ())
 
-        self._image = image
-        self._velocity = pygame.math.Vector2 (velocity)
+        self.rect.centerx = x
+        self.rect.centery = y
+
+        self.velocity = velocity
+        self.image = image
         self._time_to_live = time_to_live
-        self.set_center (x, y)
 
     def scene_update (self, dt):
-        #print ('Photon::update (): dt=', dt, 'TTL=', self._time_to_live, 'Pos=', self._rect, ', Sprite=', self)
+        # print ('Photon::update (): dt=', dt, 'TTL=', self._time_to_live, 'Pos=', self._rect, ', Sprite=', self)
 
-        if self._time_to_live > 0:
-            self._rect.centerx = (self._rect.centerx + self._velocity.x)
-            self._rect.centery = (self._rect.centery + self._velocity.y)
+        self._time_to_live -= dt
 
-            self._time_to_live -= dt
-        else:
+        if self._time_to_live <= 0:
             self.kill ()
 
 
@@ -71,16 +70,12 @@ class SingleShot (PlayerWeapon):
         self._tiles = tileset.TileSet (images.get ('missile_set'), Missile.MISSILE_WIDTH, Missile.MISSILE_HEIGHT)
 
     def fire (self):
-        player_ship = self._get_player_ship ()
+        ship = self._get_player_ship ()
 
-        rect = player_ship.get_bounding_rect ()
-        velocity = player_ship.get_velocity ()
-        forward = player_ship.get_forward_vector ()
+        x = ship.rect.centerx + (ship.forward.x * ship.rect.width / 2)
+        y = ship.rect.centery + (ship.forward.y * ship.rect.width / 2)
 
-        x = rect.centerx + (forward.x * rect.width / 2)
-        y = rect.centery + (forward.y * rect.width / 2)
-
-        missile_velocity = velocity + (forward * Missile.DEFAULT_VELOCITY)
+        missile_velocity = ship.velocity + (ship.forward * Missile.DEFAULT_VELOCITY)
         missile = Missile (x, y, self._tiles.get_tile (1), missile_velocity, 0)
 
         return [ missile ]
@@ -93,18 +88,14 @@ class DoubleShot (PlayerWeapon):
         self._tiles = tileset.TileSet (images.get ('missile_set'), Missile.MISSILE_WIDTH, Missile.MISSILE_HEIGHT)
 
     def fire (self):
-        player_ship = self._get_player_ship ()
-
-        rect = player_ship.get_bounding_rect ()
-        velocity = player_ship.get_velocity ()
-        forward = player_ship.get_forward_vector ()
+        ship = self._get_player_ship ()
 
         #missile_velocity = velocity + (forward * Missile.DEFAULT_VELOCITY)
 
         missile_velocity = pygame.math.Vector2 ()
 
-        x = rect.centerx + forward.x
-        y = rect.centery + forward.y
+        x = ship.rect.centerx + ship.forward.x
+        y = ship.rect.centery + ship.forward.y
 
         missile1 = Missile (x, y, self._tiles.get_tile (0), missile_velocity, 0)
 
@@ -133,20 +124,17 @@ class RadialShot (PlayerWeapon):
         self._tiles = tileset.TileSet (images.get ('missile_set'), Missile.MISSILE_WIDTH, Missile.MISSILE_HEIGHT)
 
     def fire (self):
-        missiles = []
         player_ship = self._get_player_ship ()
-
-        rect = player_ship.get_bounding_rect ()
-        velocity = player_ship.get_velocity ()
+        missiles = []
 
         for angle in range (0, 360, 360 // RadialShot.DEFAULT_MISSILE_COUNT):
             radians = math.radians (angle)
             forward = pygame.math.Vector2 (math.cos (radians), -math.sin (radians))
 
-            missile_velocity = velocity + (forward * RadialShot.DEFAULT_VELOCITY)
+            missile_velocity = player_ship.velocity + (forward * RadialShot.DEFAULT_VELOCITY)
 
-            x = rect.centerx + (forward.x * rect.width / 2)
-            y = rect.centery + (forward.y * rect.width / 2)
+            x = player_ship.rect.centerx + (forward.x * player_ship.rect.width / 2)
+            y = player_ship.rect.centery + (forward.y * player_ship.rect.width / 2)
 
             missiles.append (Missile (x, y, self._tiles.get_tile (0),
                                       missile_velocity, 0, RadialShot.DEFAULT_TIME_TO_LIVE))
