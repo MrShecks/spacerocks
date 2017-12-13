@@ -28,7 +28,7 @@ class PlayerWeapon (ABC):
     def _get_player_ship (self):
         return self.__player_ship
 
-class Missile (sprite.KinimaticSprite):
+class Missile (sprite.KinematicSprite):
 
     MISSILE_WIDTH           = 39
     MISSILE_HEIGHT          = 39

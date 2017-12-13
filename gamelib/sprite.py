@@ -109,7 +109,7 @@ class StaticSprite (SceneSprite):
         super ().__init__ (x + (image.get_width () // 2), y + (image.get_height () // 2), [image], 0)
 
 
-class KinimaticSprite (SceneSprite):
+class KinematicSprite (SceneSprite):
 
     """
         Base class for sprites that will move throughout the scene as forces are applied

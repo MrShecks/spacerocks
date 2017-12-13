@@ -41,7 +41,7 @@ class Factory (object):
         return asteroid
 
 
-class Asteroid (sprite.KinimaticSprite):
+class Asteroid (sprite.KinematicSprite):
 
     _MIN_VELOCITY   = -400
     _MAX_VELOCITY   = 400

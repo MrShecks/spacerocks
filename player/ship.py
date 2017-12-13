@@ -6,7 +6,7 @@ from player.weapons import RadialShot
 
 from gamelib import sprite
 
-class PlayerShip (sprite.KinimaticSprite):
+class PlayerShip (sprite.KinematicSprite):
 
     ROTATE_STOP             = 0
     ROTATE_LEFT             = 1

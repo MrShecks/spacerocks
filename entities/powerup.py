@@ -27,7 +27,7 @@ class Factory (object):
         return PowerUp (x, y, cls._tiles[type], Factory._TIME_TO_LIVE, cls._game.rect)
 
 
-class PowerUp (sprite.KinimaticSprite):
+class PowerUp (sprite.KinematicSprite):
 
     WIDTH                   = 72
     HEIGHT                  = 72
