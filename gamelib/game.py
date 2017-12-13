@@ -20,10 +20,10 @@ class Game (object):
 
     def run (self):
         self.__is_running = True
-        clock = pygame.time.Clock ()
+        self.__clock = pygame.time.Clock ()
 
         while self.__is_running:
-            dt = clock.tick (self.__fps_lock)
+            dt = self.__clock.tick (self.__fps_lock)
 
             if self.__active_scene:
                 for event in pygame.event.get ():
@@ -37,13 +37,19 @@ class Game (object):
                         self.__active_scene.on_mouse_down (event.pos, event)
                     elif event.type == pygame.MOUSEBUTTONUP:
                         self.__active_scene.on_mouse_up (event.pos, event)
+                    elif event.type == pygame.JOYBUTTONDOWN:
+                        self.__active_scene.on_joy_button_down (event)
+                    elif event.type == pygame.JOYBUTTONUP:
+                        self.__active_scene.on_joy_button_up (event)
+                    elif event.type == pygame.JOYAXISMOTION:
+                        self.__active_scene.on_joy_motion (event)
+
+                    # print ('Game::run (): event.type=', event.type, ', Event=', event)
 
                 self.__active_scene.update (dt / 1000.0)
                 self.__active_scene.draw (self.__surface)
 
                 pygame.display.flip ()
-
-                # print ('FPS=', clock.get_fps ())
 
         pygame.quit ()
 
@@ -56,6 +62,9 @@ class Game (object):
             self.__active_scene = scene
             self.__active_scene.scene_activated ()
 
+    @property
+    def fps (self):
+        return self.__clock.get_fps ()
 
     @property
     def rect (self):

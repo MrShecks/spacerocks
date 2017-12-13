@@ -1,7 +1,7 @@
 import math
 import pygame
 
-from gamelib import scene
+from gamelib import sprite
 from gamelib import tileset
 
 from abc import ABC, abstractmethod
@@ -28,26 +28,21 @@ class PlayerWeapon (ABC):
     def _get_player_ship (self):
         return self.__player_ship
 
-class Missile (scene.MovableSprite):
+class Missile (sprite.KinimaticSprite):
 
     MISSILE_WIDTH           = 39
     MISSILE_HEIGHT          = 39
 
-    DEFAULT_VELOCITY        = 10    # Default velocity in pixels per second
+    DEFAULT_VELOCITY        = 800   # Default velocity in pixels per second
     DEFAULT_TIME_TO_LIVE    = 5     # Default TTL in seconds
 
     def __init__ (self, x, y, image, velocity, angle, time_to_live = DEFAULT_TIME_TO_LIVE):
-        super ().__init__ (image.get_width (), image.get_height ())
+        super ().__init__ (x, y, [image], 0, velocity)
 
-        self.rect.centerx = x
-        self.rect.centery = y
-
-        self.velocity = velocity
-        self.image = image
         self._time_to_live = time_to_live
 
-    def scene_update (self, dt):
-        # print ('Photon::update (): dt=', dt, 'TTL=', self._time_to_live, 'Pos=', self._rect, ', Sprite=', self)
+    def update (self, dt):
+        super ().update (dt)
 
         self._time_to_live -= dt
 
@@ -72,8 +67,8 @@ class SingleShot (PlayerWeapon):
     def fire (self):
         ship = self._get_player_ship ()
 
-        x = ship.rect.centerx + (ship.forward.x * ship.rect.width / 2)
-        y = ship.rect.centery + (ship.forward.y * ship.rect.width / 2)
+        x = ship.rect.centerx # + (ship.forward.x * ship.rect.width / 2)
+        y = ship.rect.centery # + (ship.forward.y * ship.rect.width / 2)
 
         missile_velocity = ship.velocity + (ship.forward * Missile.DEFAULT_VELOCITY)
         missile = Missile (x, y, self._tiles.get_tile (1), missile_velocity, 0)
@@ -115,9 +110,9 @@ class RadialShot (PlayerWeapon):
         Note: This might be a good secondary weapon obtained via a power up
     """
 
-    DEFAULT_VELOCITY        = 5     # Default velocity in pixels per second
+    DEFAULT_VELOCITY        = 800   # Default velocity in pixels per second
     DEFAULT_TIME_TO_LIVE    = 2     # Default TTL in seconds
-    DEFAULT_MISSILE_COUNT   = 10    # Default number of missiles to fire
+    DEFAULT_MISSILE_COUNT   = 20    # Default number of missiles to fire
 
     def __init__ (self, player_ship, images):
         super ().__init__ (player_ship)

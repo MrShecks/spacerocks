@@ -33,16 +33,29 @@ class Spacerocks (game.Game):
     # WINDOW_WIDTH                = 960
     # WINDOW_HEIGHT               = 720
 
-    WINDOW_WIDTH                = 1600 #1280 #1920
-    WINDOW_HEIGHT               = 1280 #1080 #1080
+    SCREEN_WIDTH                = 1600 #1280 #1920
+    SCREEN_HEIGHT               = 1280 #1080 #1080
 
-    WINDOW_RECT                 = pygame.Rect (0, 0, WINDOW_WIDTH, WINDOW_HEIGHT)
+    SCREEN_RECT                 = pygame.Rect (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-    FPS                         = 100     # TODO: More research here (in the meantime full speed ahead!)
+    FPS                         = 60     # TODO: More research here
 
     def __init__ (self):
-        super ().__init__ (Spacerocks.WINDOW_WIDTH, Spacerocks.WINDOW_HEIGHT,
+        super ().__init__ (Spacerocks.SCREEN_WIDTH, Spacerocks.SCREEN_HEIGHT,
                            Spacerocks.WINDOW_TITLE, Spacerocks.FPS)
+
+
+        # ----------------------------------------------------------------
+        # DEBUG
+        # Figuring out how joysticks work with PyGame
+
+        print ('Joysticks: ', pygame.joystick.get_count())
+
+        joy = pygame.joystick.Joystick (0)
+        joy.init ()
+
+        # DEBUG
+        # ----------------------------------------------------------------
 
         assets_path = os.path.join (os.path.dirname (__file__), 'assets')
 
