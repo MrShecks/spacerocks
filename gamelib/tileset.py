@@ -32,10 +32,7 @@ class TileSet:
         return self.__len__ ()
 
     def __getitem__ (self, index):
-        if index < len (self._tiles):
-            return self._tiles[index]
-        else:
-            raise IndexError ('Index is out of range')
+        return self._tiles.__getitem__ (index)
 
     def __len__ (self):
-        return len (self._tiles)
+        return self._tiles.__len__ ()

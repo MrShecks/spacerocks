@@ -28,6 +28,9 @@ class PlayerWeapon (ABC):
     def _get_player_ship (self):
         return self.__player_ship
 
+    def update (self, dt):
+        pass
+
 class Missile (sprite.KinematicSprite):
 
     MISSILE_WIDTH           = 39
@@ -60,9 +63,17 @@ class SingleShot (PlayerWeapon):
 
     """
 
+    _COOLDOWN_TIMER = 50
+
     def __init__ (self, player_ship, images):
         super ().__init__ (player_ship)
+
         self._tiles = tileset.TileSet (images.get ('missile_set'), Missile.MISSILE_WIDTH, Missile.MISSILE_HEIGHT)
+        self._last_update = pygame.time.get_ticks ()
+        self._can_fire = True
+
+    def can_fire (self):
+        return self._can_fire
 
     def fire (self):
         ship = self._get_player_ship ()
@@ -70,10 +81,19 @@ class SingleShot (PlayerWeapon):
         x = ship.rect.centerx # + (ship.forward.x * ship.rect.width / 2)
         y = ship.rect.centery # + (ship.forward.y * ship.rect.width / 2)
 
-        missile_velocity = ship.velocity + (ship.forward * Missile.DEFAULT_VELOCITY)
+        missile_velocity = ship.velocity + (ship.get_forward_vector () * Missile.DEFAULT_VELOCITY)
         missile = Missile (x, y, self._tiles.get_tile (1), missile_velocity, 0)
 
         return [ missile ]
+
+    def update (self, dt):
+        now = pygame.time.get_ticks ()
+
+        if now - self._last_update >= SingleShot._COOLDOWN_TIMER:
+            self._last_update = now
+            self._can_fire = True
+        else:
+            self._can_fire = False
 
 
 class DoubleShot (PlayerWeapon):
@@ -88,9 +108,10 @@ class DoubleShot (PlayerWeapon):
         #missile_velocity = velocity + (forward * Missile.DEFAULT_VELOCITY)
 
         missile_velocity = pygame.math.Vector2 ()
+        forward_vector = ship.get_forward_vector ()
 
-        x = ship.rect.centerx + ship.forward.x
-        y = ship.rect.centery + ship.forward.y
+        x = ship.rect.centerx + forward_vector.x
+        y = ship.rect.centery + forward_vector.y
 
         missile1 = Missile (x, y, self._tiles.get_tile (0), missile_velocity, 0)
 

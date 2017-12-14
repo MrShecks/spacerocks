@@ -65,8 +65,7 @@ class GameScene (scene.Scene):
         self.add_node (self._background, GameScene._SCENE_LAYER_BACKGROUND)
 
         # FIXME: Pass the game object rather than all these params
-        self._playerShip = ship.PlayerShip (game.rect.centerx, game.rect.centery,
-                                            game.image_cache, game.rect, self)
+        self._playerShip = ship.PlayerShip (game.rect.centerx, game.rect.centery, game.image_cache, game.rect)
         self.add_node (self._playerShip, GameScene._SCENE_LAYER_PLAYER_SHIP)
 
         self._asteroids = pygame.sprite.Group ()
@@ -81,6 +80,11 @@ class GameScene (scene.Scene):
 
         self._fps_label = scene.SceneText (game.rect.right - 80, 5, 'FPS: ???', pygame.font.SysFont ('', 26))
         self.add_node (self._fps_label, GameScene._SCENE_LAYER_HUD)
+
+        self._stat_label = scene.SceneText (5, game.rect.bottom - 26, '(D)rag: ?, (S)hield: ?',
+                                            pygame.font.SysFont ('', 26))
+
+        self.add_node (self._stat_label, GameScene._SCENE_LAYER_HUD)
 
         # DEBUG
 
@@ -102,6 +106,7 @@ class GameScene (scene.Scene):
                     self.add_node (p, GameScene._SCENE_LAYER_POWERUP)
 
         self._fps_label.set_text ('FPS: {0:03d}'.format (int (self.game.fps)))
+        self._stat_label.set_text ('(D)rag={0}, (S)hield={1}'.format (self._playerShip._has_drag, self._playerShip._has_shield))
 
     def on_key_down (self, key, event):
 
@@ -127,8 +132,10 @@ class GameScene (scene.Scene):
 
         elif key == pygame.K_x:
             self._playerShip.fire_weapon (ship.PlayerShip.SECONDARY_WEAPON)
-        elif key == pygame.K_f:
-            self._playerShip.toggle_friction ()
+        elif key == pygame.K_d:
+            self._playerShip.toggle_drag ()
+        elif key == pygame.K_s:
+            self._playerShip.toggle_shield ()
         elif key == pygame.K_b:
             self._background.set_image (random.randrange (0, 7))
         elif key == pygame.K_F1:
@@ -137,20 +144,24 @@ class GameScene (scene.Scene):
             self.game.quit ()
 
     def on_joy_button_up (self, event):
-        print ('GameLevel::on_joy_button_up (): Event=', event)
+        # print ('GameLevel::on_joy_button_up (): Event=', event)
+        #
+        # if event.button == 0:
+        #     self._playerShip.fire_weapon (ship.PlayerShip.PRIMARY_WEAPON)
+        # elif event.button == 1:
+        #     self._playerShip.fire_weapon (ship.PlayerShip.SECONDARY_WEAPON)
 
-        if event.button == 0:
-            self._playerShip.fire_weapon (ship.PlayerShip.PRIMARY_WEAPON)
-        elif event.button == 1:
-            self._playerShip.fire_weapon (ship.PlayerShip.SECONDARY_WEAPON)
+        pass
 
     def on_joy_motion (self, event):
-        joy = pygame.joystick.Joystick (event.joy)
-        x = joy.get_axis (0)
-        y = joy.get_axis (1)
-        angle = math.atan2 (x, y)
+        # joy = pygame.joystick.Joystick (event.joy)
+        # x = joy.get_axis (0)
+        # y = joy.get_axis (1)
+        # angle = math.atan2 (x, y)
+        #
+        # print ('GameLevel:on_joy_motion (): Event=', event, ', x=', x, ', y=', y, ', angle=', angle)
 
-        print ('GameLevel:on_joy_motion (): Event=', event, ', x=', x, ', y=', y, ', angle=', angle)
+        pass
 
     def dbg_spawn_asteroids (self):
         # DEBUG - Create some random asteroids for testing

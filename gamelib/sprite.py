@@ -3,6 +3,7 @@ import math
 import abc
 
 from gamelib import scene
+from gamelib import utils
 
 
 class SceneSprite (scene.Scene.Node):
@@ -75,7 +76,7 @@ class SceneSprite (scene.Scene.Node):
         self.__frame_animator = frame_animator
 
     def set_frame_index (self, frame_index):
-        if 0 <= frame_index < len (self.__frames): # and self.__frame_index != frame_index:
+        if 0 <= frame_index < len (self.__frames) and self.__frame_index != frame_index:
             self._update_flags |= SceneSprite._FLAG_UPDATE_FRAME
             self.__frame_index = frame_index
 
@@ -115,8 +116,9 @@ class KinematicSprite (SceneSprite):
         Base class for sprites that will move throughout the scene as forces are applied
     """
 
-    def __init__ (self, x, y, frames, frame_index = 0, velocity = pygame.math.Vector2 (),
-                  max_velocity = pygame.math.Vector2 (1000, 1000)):
+    _MAX_VELOCITY = 1000
+
+    def __init__ (self, x, y, frames, frame_index = 0, velocity = None, max_velocity = None):
 
         """
             :param x:               (int) Center position of sprite on x-axis
@@ -129,11 +131,18 @@ class KinematicSprite (SceneSprite):
 
         super ().__init__ (x, y, frames, frame_index)
 
+        if velocity is None:
+            velocity = pygame.math.Vector2 ()
+
+        if max_velocity is None:
+            max_velocity = pygame.math.Vector2 (KinematicSprite._MAX_VELOCITY, KinematicSprite._MAX_VELOCITY)
+
         self.__frame_image = frames[frame_index].copy ()
 
         self.__velocity = velocity
         self.__max_velocity = max_velocity
         self.__acceleration = pygame.math.Vector2 ()
+        self.__drag = pygame.math.Vector2 ()
 
         self.__rotation = 0
         self.__rotation_velocity = 0
@@ -145,6 +154,14 @@ class KinematicSprite (SceneSprite):
     @property
     def velocity (self):
         return pygame.math.Vector2 (self.__velocity)
+
+    @property
+    def acceleration (self):
+        return pygame.math.Vector2 (self.__acceleration)
+
+    @property
+    def drag (self):
+        return pygame.math.Vector2 (self.__drag)
 
     def set_position (self, x, y):
         self._rect.x = x
@@ -158,6 +175,14 @@ class KinematicSprite (SceneSprite):
         self.__max_velocity.x = x
         self.__max_velocity.y = y
 
+    def set_drag (self, x, y):
+        self.__drag.x = x
+        self.__drag.y = y
+
+    @property
+    def rotation (self):
+        return self.__rotation
+
     def set_rotation (self, rotation):
         if self.__rotation != rotation:
             self._update_flags |= SceneSprite._FLAG_UPDATE_TRANSFORM
@@ -170,26 +195,32 @@ class KinematicSprite (SceneSprite):
     def get_forward_vector (self):
         angle = math.radians (self.__rotation)
 
-        return pygame.math.Vector2 (math.cos (angle), -math.sin (angle))
+        return pygame.math.Vector2 (math.sin (angle), -math.cos (angle))
 
     def update (self, dt):
 
         # Recalculate the sprites angle of rotation if required
         if self.__rotation_velocity:
-            self.__rotation_velocity = self.__get_velocity (dt, self.__rotation_velocity, 0, 0, 1000)
-            self.__rotation = (self.__rotation + self.__rotation_velocity * dt) % 360
+            self.__rotation_velocity = KinematicSprite.__get_velocity (dt, self.__rotation_velocity, 0, 0, 1000)
+            self.__rotation = (self.__rotation + (self.__rotation_velocity * dt)) % 360
             self._update_flags |= SceneSprite._FLAG_UPDATE_TRANSFORM
 
         # Only update the sprites image if the rotation has changed or a new frame has been set
-        if self._update_flags & (SceneSprite._FLAG_UPDATE_TRANSFORM|SceneSprite._FLAG_UPDATE_FRAME):
-            self.__frame_image = self.__rotate_center (super ().image, self.__rotation)
+        if self._update_flags & (SceneSprite._FLAG_UPDATE_TRANSFORM | SceneSprite._FLAG_UPDATE_FRAME):
 
-            self._rect.width = self.__frame_image.get_width ()
-            self._rect.height = self.__frame_image.get_height ()
+            # Note: Pygames transform.rotate () method expects negative values to rotate clockwise, all of our
+            # math uses positive angles for clockwise rotation (e.g North=0, East=90, South= 180, West=270)
+            # so we multiple the angle by -1
+
+            self.__frame_image = pygame.transform.rotate (super ().image, self.__rotation * -1)
+            current_position = self._rect.center
+
+            self._rect = self.__frame_image.get_rect ()
+            self._rect.center = current_position
 
         # Recalculate the sprites velocity
-        self.__velocity.x = self.__get_velocity (dt, self.__velocity.x, self.__acceleration.x, 0, self.__max_velocity.x)
-        self.__velocity.y = self.__get_velocity (dt, self.__velocity.y, self.__acceleration.y, 0, self.__max_velocity.y)
+        self.__velocity.x = KinematicSprite.__get_velocity (dt, self.__velocity.x, self.__acceleration.x, self.__drag.x, self.__max_velocity.x)
+        self.__velocity.y = KinematicSprite.__get_velocity (dt, self.__velocity.y, self.__acceleration.y, self.__drag.y, self.__max_velocity.y)
 
         # Apply velocity changes to the sprite position
         self._rect.x += self.__velocity.x * dt
@@ -199,34 +230,26 @@ class KinematicSprite (SceneSprite):
         # to be performed on the sprite before it is drawn to the screen
         super ().update (dt)
 
-        # self._update_flags = SceneSprite._FLAG_UPDATE_NONE
-
-    def __get_velocity (self, dt, velocity, acceleration, drag, max_velocity):
-
-        if acceleration:
-            velocity += acceleration * dt
-
-        # TODO: Apply drag
-
-        return self.__clamp (velocity, -max_velocity, max_velocity)
-
     @property
     def image (self):
         return self.__frame_image
 
     @staticmethod
-    def __rotate_center (image, angle):
-        orig_rect = image.get_rect ()
-        transformed_image = pygame.transform.rotate (image, angle)
-        rot_rect = orig_rect.copy ()
-        rot_rect.center = transformed_image.get_rect ().center
-        transformed_image = transformed_image.subsurface (rot_rect).copy ()
+    def __get_velocity (dt, velocity, acceleration, drag, max_velocity):
 
-        return transformed_image
+        if acceleration:
+            velocity += acceleration * dt
+        elif drag:
+            drag *= dt
 
-    @staticmethod
-    def __clamp (n, min_value, max_value):
-        return min (max (n, min_value), max_value)
+            if velocity - drag > 0:
+                velocity -= drag
+            elif velocity + drag < 0:
+                velocity += drag
+            else:
+                velocity = 0
+
+        return utils.clamp (velocity, -max_velocity, max_velocity)
 
     # DEBUG - Review
 
@@ -265,4 +288,3 @@ class LinearFrameAnimator (SceneSprite.Animator):
                 sprite.kill ()
 
             self._last_update = now
-
