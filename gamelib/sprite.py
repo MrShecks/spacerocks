@@ -147,9 +147,11 @@ class KinematicSprite (SceneSprite):
         self.__rotation = 0
         self.__rotation_velocity = 0
 
+        self.__scale = 1.0
+
     @property
     def position (self):
-        return pygame.math.Vector2 (self._rect.x, self._rect.y)
+        return pygame.math.Vector2 (self._rect.centerx, self._rect.centery)
 
     @property
     def velocity (self):
@@ -162,6 +164,10 @@ class KinematicSprite (SceneSprite):
     @property
     def drag (self):
         return pygame.math.Vector2 (self.__drag)
+
+    @property
+    def scale (self):
+        return self.__scale
 
     def set_position (self, x, y):
         self._rect.x = x
@@ -178,6 +184,11 @@ class KinematicSprite (SceneSprite):
     def set_drag (self, x, y):
         self.__drag.x = x
         self.__drag.y = y
+
+    def set_scale (self, scale):
+        if self.__scale != scale:
+            self._update_flags |= SceneSprite._FLAG_UPDATE_TRANSFORM
+            self.__scale = scale
 
     @property
     def rotation (self):
@@ -212,7 +223,8 @@ class KinematicSprite (SceneSprite):
             # math uses positive angles for clockwise rotation (e.g North=0, East=90, South= 180, West=270)
             # so we multiple the angle by -1
 
-            self.__frame_image = pygame.transform.rotate (super ().image, self.__rotation * -1)
+            self.__frame_image = pygame.transform.rotozoom (super ().image, self.__rotation * -1, self.__scale)
+
             current_position = self._rect.center
 
             self._rect = self.__frame_image.get_rect ()

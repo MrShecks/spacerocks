@@ -1,18 +1,15 @@
 """
     Space Rocks a simple 'Asteroids' style space shooter
 
-    Graphics Credits:
+    Credits:
 
-    Base Rice Rocks assets provided by Kim Lathrop and Rice University
-
-    Additional asset credits:
+    Graphics credits:
 
     Kenny		    - http://www.kenney.nl
-    Bart 		    - http://tinyurl.com/2vvf85p
-    NenadSimic 	    - http://tinyurl.com/nf9ycac
-    Julien 		    - http://tinyurl.com/nvt7ro5
-    Mike Koenig	    - http://tinyurl.com/pm38lbo
-    Skorpio 	    - http://tinyurl.com/ngkj7ch
+    Skorpio 	    - https://opengameart.org/users/skorpio
+
+    Audio credits:
+
 
     Assets used under Public Domain or Creative Commons License (http://tinyurl.com/2dkzmd)
 

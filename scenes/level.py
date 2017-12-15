@@ -64,8 +64,7 @@ class GameScene (scene.Scene):
 
         self.add_node (self._background, GameScene._SCENE_LAYER_BACKGROUND)
 
-        # FIXME: Pass the game object rather than all these params
-        self._playerShip = ship.PlayerShip (game.rect.centerx, game.rect.centery, game.image_cache, game.rect)
+        self._playerShip = ship.Factory.create (ship.Factory.TYPE_RED_VIPER, game.rect.centerx, game.rect.centery, game)
         self.add_node (self._playerShip, GameScene._SCENE_LAYER_PLAYER_SHIP)
 
         self._asteroids = pygame.sprite.Group ()
@@ -78,7 +77,7 @@ class GameScene (scene.Scene):
 
         # DEBUG - Testing SceneText node
 
-        self._fps_label = scene.SceneText (game.rect.right - 80, 5, 'FPS: ???', pygame.font.SysFont ('', 26))
+        self._fps_label = scene.SceneText (game.rect.right - 180, 5, 'FPS: 000 OBJ: 0000', pygame.font.SysFont ('', 26))
         self.add_node (self._fps_label, GameScene._SCENE_LAYER_HUD)
 
         self._stat_label = scene.SceneText (5, game.rect.bottom - 26, '(D)rag: ?, (S)hield: ?',
@@ -91,6 +90,8 @@ class GameScene (scene.Scene):
     def update (self, dt):
         super ().update (dt)
 
+        # FIXME: This is all temporary for debugging
+
         for projectile in self._playerShip.projectiles:
             destroyed_asteroids = pygame.sprite.spritecollide (projectile, self._asteroids, False)
 
@@ -100,12 +101,19 @@ class GameScene (scene.Scene):
                 for dead_asteroid in destroyed_asteroids:
                     exp = explosion.Factory.create (dead_asteroid.rect.centerx, dead_asteroid.rect.centery)
                     self.add_node (exp, GameScene._SCENE_LAYER_EXPLOSION)
+
+                    if random.randint (1, 10) == 5:
+                        p = powerup.Factory.create (dead_asteroid.rect.centerx, dead_asteroid.rect.centery)
+                        self.add_node (p, GameScene._SCENE_LAYER_POWERUP)
+
+                    shards = dead_asteroid.get_shards ()
+                    if shards:
+                        self.add_nodes (shards, GameScene._SCENE_LAYER_ASTEROID)
+                        self._asteroids.add (shards)
+
                     dead_asteroid.kill ()
 
-                    p = powerup.Factory.create (dead_asteroid.rect.centerx, dead_asteroid.rect.centery)
-                    self.add_node (p, GameScene._SCENE_LAYER_POWERUP)
-
-        self._fps_label.set_text ('FPS: {0:03d}'.format (int (self.game.fps)))
+        self._fps_label.set_text ('FPS: {0:03d} OBJ: {1:04d}'.format (int (self.game.fps), self.object_count))
         self._stat_label.set_text ('(D)rag={0}, (S)hield={1}'.format (self._playerShip._has_drag, self._playerShip._has_shield))
 
     def on_key_down (self, key, event):
@@ -167,14 +175,14 @@ class GameScene (scene.Scene):
         # DEBUG - Create some random asteroids for testing
 
         types = [
-            asteroid.Factory.TYPE_SMALL,
-            asteroid.Factory.TYPE_MEDIUM,
-            asteroid.Factory.TYPE_LARGE,
-            asteroid.Factory.TYPE_HUGE,
+            asteroid.Asteroid.TYPE_TINY,
+            asteroid.Asteroid.TYPE_SMALL,
+            asteroid.Asteroid.TYPE_MEDIUM,
+            asteroid.Asteroid.TYPE_LARGE,
         ]
 
         for type in types:
-            for n in range (0, 4):
+            for n in range (0, 3):
                 x = random.randrange (self.game.rect.width)
                 y = random.randrange (self.game.rect.height)
 

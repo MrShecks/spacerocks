@@ -1,11 +1,27 @@
 import pygame
 
-from gamelib.tileset import TileSet
-from player.weapons import SingleShot
-from player.weapons import RadialShot
-
+from gamelib import tileset
 from gamelib import sprite
 from gamelib import utils
+
+from player import weapons
+
+class Factory:
+
+    TYPE_RED_VIPER          = 0
+    TYPE_YELLOW_HAWK        = 1
+
+    @classmethod
+    def create (cls, type, x, y, game):
+        # TODO: Change this when more ships are added
+
+        if type == Factory.TYPE_RED_VIPER:
+            ship = RedViper (x, y, game)
+        else:
+            ship = YellowHawk (x, y, game)
+
+        return ship
+
 
 class PlayerShip (sprite.KinematicSprite):
 
@@ -13,14 +29,8 @@ class PlayerShip (sprite.KinematicSprite):
     ROTATE_RIGHT            = 1
     ROTATE_LEFT             = -1
 
-
     PRIMARY_WEAPON          = 0
     SECONDARY_WEAPON        = 1
-
-    _WIDTH                  = 90
-    _HEIGHT                 = 90
-
-    _TILE_SHEET             = 'player_ship'
 
     _TILE_SHIP              = 0
     _TILE_SHIP_THRUST       = 1
@@ -30,11 +40,11 @@ class PlayerShip (sprite.KinematicSprite):
     _ROTATE_VELOCITY        = 200           # Rotation speed in degrees per second
     _SHIP_DRAG              = 100           # Deceleration in pixels per second
 
-    def __init__ (self, x, y, image_cache, screen_rect):
-        super ().__init__ (x, y, TileSet (image_cache.get (PlayerShip._TILE_SHEET),
-                                          PlayerShip._WIDTH, PlayerShip._HEIGHT))
+    def __init__ (self, x, y, tileset_name, tile_width, tile_height, scale, game):
+        super ().__init__ (x, y, self._get_tileset (game.image_cache, tileset_name, tile_width, tile_height))
 
         self.set_rotation (0)
+        self.set_scale (scale)
 
         self._thrust = False
         self._has_drag = False
@@ -43,13 +53,15 @@ class PlayerShip (sprite.KinematicSprite):
         self._thrust_velocity = PlayerShip._THRUST_VELOCITY
         self._thrust_friction = PlayerShip._SHIP_DRAG
 
-        self._screen_rect = screen_rect
+        self._screen_rect = game.rect
 
         self._projectiles = pygame.sprite.Group ()
 
-        self._primary_weapon = SingleShot (self, image_cache)
-        #self._primary_weapon = DoubleShot (self, image_cache)
-        self._secondary_weapon = RadialShot (self, image_cache)
+        self._primary_weapon = weapons.SingleShot (self, game.image_cache)
+        self._secondary_weapon = weapons.DoubleShot (self, game.image_cache)
+
+        #self._secondary_weapon = weapons.RadialShot (self, image_cache)
+
 
     def rotate (self, type):
         self.set_rotation_velocity (PlayerShip._ROTATE_VELOCITY * type)
@@ -86,6 +98,10 @@ class PlayerShip (sprite.KinematicSprite):
     def projectiles (self):
         return self._projectiles
 
+    @property
+    def screen_rect (self):
+        return self._screen_rect
+
     def update (self, dt):
         super ().update (dt)
 
@@ -110,3 +126,33 @@ class PlayerShip (sprite.KinematicSprite):
 
         #print ('PlayerShip::update (): Velocity=', self.velocity, ', Acceleration=', self.acceleration, ', Drag=', self.drag)
         #print ('PlayerShip::update (): Forward=', self.get_forward_vector (), ', Rotation=', self.rotation)
+
+    @staticmethod
+    def _get_tileset (image_cache, name, width, height):
+        return tileset.TileSet (image_cache.get (name), width, height)
+
+
+class RedViper (PlayerShip):
+
+    _TILE_WIDTH     = 168
+    _TILE_HEIGHT    = 236
+    _TILE_SCALE     = 0.70
+
+    _TILE_SET_NAME  = 'playership_set_01'
+
+    def __init__ (self, x, y, game):
+        super ().__init__ (x, y, RedViper._TILE_SET_NAME, RedViper._TILE_WIDTH,
+                           RedViper._TILE_HEIGHT, RedViper._TILE_SCALE, game)
+
+
+class YellowHawk (PlayerShip):
+
+    _TILE_WIDTH     = 186
+    _TILE_HEIGHT    = 296
+    _TILE_SCALE     = 0.50
+
+    _TILE_SET_NAME  = 'playership_set_02'
+
+    def __init__ (self, x, y, game):
+        super ().__init__ (x, y, YellowHawk._TILE_SET_NAME, YellowHawk._TILE_WIDTH,
+                           YellowHawk._TILE_HEIGHT, YellowHawk._TILE_SCALE, game)

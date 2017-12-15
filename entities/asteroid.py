@@ -1,67 +1,99 @@
 import pygame
 import random
 
+from entities import entity
 from gamelib import sprite
 from gamelib import tileset
 from gamelib import utils
 
 class Factory (object):
 
-    TYPE_SMALL      = 0
-    TYPE_MEDIUM     = 1
-    TYPE_LARGE      = 2
-    TYPE_HUGE       = 3
-
-    _TYPE_FIRST     = TYPE_SMALL
-    _TYPE_LAST      = TYPE_HUGE
-
-    _MIN_VELOCITY   = -400
-    _MAX_VELOCITY   = 400
+    _TILE_WIDTH      = 128
+    _TILE_HEIGHT     = 128
+    _TILE_SET        = 'asteroid_set_01'
 
     _game           = None
-    _asteroid_tiles = []
+    _asteroid_tiles = None
 
     @classmethod
     def init (cls, game):
         if cls._game == None:
-            cls._asteroid_tiles.append (tileset.TileSet (game.image_cache.get ('asteroid_set_01'), 32, 32))
-            cls._asteroid_tiles.append (tileset.TileSet (game.image_cache.get ('asteroid_set_02'), 64, 64))
-            cls._asteroid_tiles.append (tileset.TileSet (game.image_cache.get ('asteroid_set_03'), 96, 96))
-            cls._asteroid_tiles.append (tileset.TileSet (game.image_cache.get ('asteroid_set_04'), 128, 128))
 
+            cls._asteroid_tiles = tileset.TileSet (game.image_cache.get (Factory._TILE_SET),
+                                                   Factory._TILE_WIDTH, Factory._TILE_HEIGHT)
             cls._game = game
 
     @classmethod
     def create (cls, x, y, type = None):
 
-        if type is None or not (cls._TYPE_FIRST <= type <= cls._TYPE_LAST):
-            type = random.randrange (cls._TYPE_FIRST, cls._TYPE_LAST + 1)
+        if type is None or not (Asteroid._TYPE_FIRST <= type <= Asteroid._TYPE_LAST):
+            type = random.randrange (Asteroid._TYPE_FIRST, Asteroid._TYPE_LAST + 1)
 
-        asteroid = Asteroid (x, y, cls._asteroid_tiles[type], 100, cls._game.rect)
-
-        return asteroid
+        return Asteroid (x, y, cls._asteroid_tiles, type, cls._game.rect)
 
 
-class Asteroid (sprite.KinematicSprite):
+class Asteroid (entity.Entity):
 
-    _MIN_VELOCITY   = -400
-    _MAX_VELOCITY   = 400
+    TYPE_TINY               = 0
+    TYPE_SMALL              = 1
+    TYPE_MEDIUM             = 2
+    TYPE_LARGE              = 3
 
-    # TODO: Maybe add a factory method (class method) to create entities of different sizes?
+    _TYPE_FIRST             = TYPE_TINY
+    _TYPE_LAST              = TYPE_LARGE
 
-    def __init__ (self, x, y, frames, frame_speed, screen_rect):
+    _MIN_VELOCITY           = -400
+    _MAX_VELOCITY           = 400
+
+    _MIN_ROTATE_VELOCITY    = -100
+    _MAX_ROTATE_VELOCITY    = 100
+
+    _FRAME_SPEED            = 100
+
+    _TYPE_TO_SCALE = {
+        TYPE_LARGE:         1.00,
+        TYPE_MEDIUM:        0.80,
+        TYPE_SMALL:         0.60,
+        TYPE_TINY:          0.40
+    }
+
+
+    def __init__ (self, x, y, frames, type, screen_rect):
         super ().__init__ (x, y, frames, 0, self._get_velocity ())
 
+        self._type = type
         self._screen_rect = screen_rect
+        self.set_rotation_velocity (random.randrange (Asteroid._MIN_ROTATE_VELOCITY, Asteroid._MAX_ROTATE_VELOCITY))
+        self.set_frame_animator (sprite.LinearFrameAnimator (Asteroid._FRAME_SPEED, True))
+        self.set_scale (Asteroid._TYPE_TO_SCALE[type])
 
-        self.set_rotation_velocity (-50)
-        self.set_frame_animator (sprite.LinearFrameAnimator (frame_speed, True))
+    @property
+    def entity_type (self):
+        # FIXME: Return the correct subtype
+        return entity.Entity.TYPE_ASTEROID_SMALL
 
     def update (self, dt):
         super ().update (dt)
 
         # If the asteroid runs off the edge of the screen it should warp to the opposite side
         self.rect.center = utils.clamp_point_to_rect (self.rect.center, self._screen_rect)
+
+    def get_shards (self):
+
+        shard_type = {
+            Asteroid.TYPE_TINY:     (0, 0),
+            Asteroid.TYPE_SMALL:    (2, Asteroid.TYPE_TINY),
+            Asteroid.TYPE_MEDIUM:   (2, Asteroid.TYPE_SMALL),
+            Asteroid.TYPE_LARGE:    (2, Asteroid.TYPE_MEDIUM)
+        }[self._type]
+
+        shards = []
+
+        for n in range (shard_type[0]):
+            shards.append (Factory.create (self.position.x, self.position.y, shard_type[1]))
+
+        return shards
+
 
     def _get_velocity (self):
         return pygame.math.Vector2 (random.randrange (Asteroid._MIN_VELOCITY, Asteroid._MAX_VELOCITY),

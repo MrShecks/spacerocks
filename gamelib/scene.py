@@ -54,6 +54,10 @@ class Scene (object):
     def game (self):
         return self._game
 
+    @property
+    def object_count (self):
+        return len (self._nodes)
+
     def add_node (self, node, scene_layer = -1):
         assert isinstance (node, Scene.Node)
 

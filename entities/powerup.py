@@ -1,6 +1,7 @@
 import pygame
 import random
 
+from entities import entity
 from gamelib import sprite
 from gamelib import tileset
 from gamelib import utils
@@ -40,7 +41,7 @@ class Factory (object):
     def init (cls, game):
         if cls._game == None:
 
-            cls._frames = tileset.TileSet (game.image_cache.get ('powerup_set_00'), Factory._WIDTH, Factory._HEIGHT)
+            cls._frames = tileset.TileSet (game.image_cache.get ('powerup_set_01'), Factory._WIDTH, Factory._HEIGHT)
             cls._game = game
 
     @classmethod
@@ -54,7 +55,7 @@ class Factory (object):
 
         return shield
 
-class PowerUp (sprite.KinematicSprite):
+class PowerUp (entity.Entity):
 
     _MIN_VELOCITY           = -200
     _MAX_VELOCITY           = 200
@@ -72,8 +73,8 @@ class PowerUp (sprite.KinematicSprite):
         self.set_rotation_velocity (random.randrange (-PowerUp._MAX_ROTATION_VELOCITY, PowerUp._MAX_ROTATION_VELOCITY))
 
     @property
-    def type (self):
-        return self._type
+    def entity_type (self):
+        return entity.Entity.TYPE_POWERUP
 
     def update (self, dt):
         super ().update (dt)

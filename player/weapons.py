@@ -25,7 +25,7 @@ class PlayerWeapon (ABC):
     def can_fire (self):
         return True
 
-    def _get_player_ship (self):
+    def get_player_ship (self):
         return self.__player_ship
 
     def update (self, dt):
@@ -36,13 +36,15 @@ class Missile (sprite.KinematicSprite):
     MISSILE_WIDTH           = 39
     MISSILE_HEIGHT          = 39
 
-    DEFAULT_VELOCITY        = 800   # Default velocity in pixels per second
+    DEFAULT_VELOCITY        = 3000   # Default velocity in pixels per second
     DEFAULT_TIME_TO_LIVE    = 5     # Default TTL in seconds
 
     def __init__ (self, x, y, image, velocity, angle, time_to_live = DEFAULT_TIME_TO_LIVE):
         super ().__init__ (x, y, [image], 0, velocity)
 
         self._time_to_live = time_to_live
+        self.set_rotation (angle)
+        self.set_max_velocity (5000, 5000)
 
     def update (self, dt):
         super ().update (dt)
@@ -51,6 +53,43 @@ class Missile (sprite.KinematicSprite):
 
         if self._time_to_live <= 0:
             self.kill ()
+
+class Photon (sprite.KinematicSprite):
+
+    WIDTH           = 42
+    HEIGHT          = 76
+
+    COLOR_GREEN     = 0
+    COLOR_YELLOW    = 1
+    COLOR_RED       = 2
+    COLOR_WHITE     = 3
+
+    VELOCITY        = 3000      # Default velocity in pixels per second
+    TIME_TO_LIVE    = 0.5       # Default TTL in seconds
+
+    def __init__ (self, x, y, image, scale, velocity, angle, screen_rect, time_to_live = TIME_TO_LIVE):
+        super ().__init__ (x, y, [image], 0, velocity)
+
+        self._screen_rect = screen_rect
+        self._time_to_live = time_to_live
+
+        self.set_scale (scale)
+        self.set_rotation (angle)
+        self.set_max_velocity (Photon.VELOCITY, Photon.VELOCITY)
+
+    def update (self, dt):
+        super ().update (dt)
+
+        # TODO: At some point might need to think about pooling projectiles for performance
+        
+        self._time_to_live -= dt
+
+        if self._time_to_live <= 0 or self._screen_rect.colliderect (self.rect) == False:
+            self.kill ()
+
+    @classmethod
+    def get_tileset (cls, image_cache):
+        return tileset.TileSet (image_cache.get ('photon_set_01'), Photon.WIDTH, Photon.HEIGHT)
 
 
 class SingleShot (PlayerWeapon):
@@ -65,10 +104,10 @@ class SingleShot (PlayerWeapon):
 
     _COOLDOWN_TIMER = 50
 
-    def __init__ (self, player_ship, images):
+    def __init__ (self, player_ship, image_cache):
         super ().__init__ (player_ship)
 
-        self._tiles = tileset.TileSet (images.get ('missile_set'), Missile.MISSILE_WIDTH, Missile.MISSILE_HEIGHT)
+        self._tiles = Photon.get_tileset (image_cache)
         self._last_update = pygame.time.get_ticks ()
         self._can_fire = True
 
@@ -76,13 +115,14 @@ class SingleShot (PlayerWeapon):
         return self._can_fire
 
     def fire (self):
-        ship = self._get_player_ship ()
+        ship = self.get_player_ship ()
 
-        x = ship.rect.centerx # + (ship.forward.x * ship.rect.width / 2)
-        y = ship.rect.centery # + (ship.forward.y * ship.rect.width / 2)
+        x = ship.rect.centerx
+        y = ship.rect.centery
 
-        missile_velocity = ship.velocity + (ship.get_forward_vector () * Missile.DEFAULT_VELOCITY)
-        missile = Missile (x, y, self._tiles.get_tile (1), missile_velocity, 0)
+        velocity = ship.velocity + (ship.get_forward_vector () * Photon.VELOCITY)
+        missile = Photon (x, y, self._tiles.get_tile (Photon.COLOR_GREEN), ship.scale,
+                          velocity, ship.rotation, ship.screen_rect)
 
         return [ missile ]
 
@@ -98,29 +138,39 @@ class SingleShot (PlayerWeapon):
 
 class DoubleShot (PlayerWeapon):
 
-    def __init__ (self, player_ship, images):
+    def __init__ (self, player_ship, image_cache):
         super ().__init__ (player_ship)
-        self._tiles = tileset.TileSet (images.get ('missile_set'), Missile.MISSILE_WIDTH, Missile.MISSILE_HEIGHT)
+
+        self._tiles = Photon.get_tileset (image_cache)
 
     def fire (self):
-        ship = self._get_player_ship ()
+        ship = self.get_player_ship ()
+        velocity = ship.velocity + (ship.get_forward_vector () * Photon.VELOCITY)
 
-        #missile_velocity = velocity + (forward * Missile.DEFAULT_VELOCITY)
 
-        missile_velocity = pygame.math.Vector2 ()
-        forward_vector = ship.get_forward_vector ()
+        # FIXME: Don't hardcode the gun positions, since we will have different ships it would be better
+        # FIXME: to ask the ship (e.g ship.get_cannon_position (x) )
 
-        x = ship.rect.centerx + forward_vector.x
-        y = ship.rect.centery + forward_vector.y
+        mp1 = pygame.math.Vector2 (-35, 0)
+        mp1.rotate_ip (ship.rotation)
 
-        missile1 = Missile (x, y, self._tiles.get_tile (0), missile_velocity, 0)
+        mp1.x += ship.position.x
+        mp1.y += ship.position.y
 
-        # x = rect.centerx + (forward.x * rect.width / 2)
-        # y = rect.centery + (forward.y * rect.width / 2)
-        #
-        # missile2 = Missile (x, y, self._tiles.get_tile (0), missile_velocity, 0)
 
-        return [ missile1 ]
+        missile1 = Photon (mp1.x, mp1.y, self._tiles.get_tile (Photon.COLOR_RED), ship.scale,
+                           velocity, ship.rotation, ship.screen_rect)
+
+        mp2 = pygame.math.Vector2 (35, 0)
+        mp2.rotate_ip (ship.rotation)
+
+        mp2.x += ship.position.x
+        mp2.y += ship.position.y
+
+        missile2 = Photon (mp2.x, mp2.y, self._tiles.get_tile (Photon.COLOR_RED), ship.scale,
+                           velocity, ship.rotation, ship.screen_rect)
+
+        return [ missile1, missile2 ]
 
 
 class RadialShot (PlayerWeapon):
@@ -140,7 +190,7 @@ class RadialShot (PlayerWeapon):
         self._tiles = tileset.TileSet (images.get ('missile_set'), Missile.MISSILE_WIDTH, Missile.MISSILE_HEIGHT)
 
     def fire (self):
-        player_ship = self._get_player_ship ()
+        player_ship = self.get_player_ship ()
         missiles = []
 
         for angle in range (0, 360, 360 // RadialShot.DEFAULT_MISSILE_COUNT):
