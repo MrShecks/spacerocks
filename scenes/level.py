@@ -9,6 +9,13 @@ from entities import explosion
 from entities import powerup
 from scenes import background
 
+from gamelib import sprite
+
+class ShipStatsHud (sprite.StaticSprite):
+
+    def __init__ (self, x, y, image):
+        super ().__init__ (x, y, image)
+
 class GameScene (scene.Scene):
 
     _SCENE_LAYER_BACKGROUND         = 0
@@ -25,8 +32,13 @@ class GameScene (scene.Scene):
         explosion.Factory.init (game)
         powerup.Factory.init (game)
 
-        self._background = background.ScrollingBackground (0, 0, game.rect.width, game.rect.height,
-                                                           self.game.image_cache.get ('tiled_background_01'))
+        # self._background = background.ScrollingBackground (0, 0, game.rect.width, game.rect.height,
+        #                                                    self.game.image_cache.get ('tiled_background_01'))
+
+        self._background = background.ParallaxScroller (0, 0, game.rect.width, game.rect.height)
+        self._background.add_layer (game.image_cache.get ('tiled_background_01'), 0.4)
+        self._background.add_layer (game.image_cache.get ('parallax_layer_02'), 0.6)
+        self._background.add_layer (game.image_cache.get ('parallax_layer_01'), 0.8)
 
         self.add_node (self._background, GameScene._SCENE_LAYER_BACKGROUND)
 
@@ -37,7 +49,7 @@ class GameScene (scene.Scene):
 
         # DEBUG
 
-        # self.dbg_spawn_asteroids ()
+        self.dbg_spawn_asteroids ()
 
         # s = shield.Shield (self.game.rect.centerx, self.game.rect.centery, self.game.image_cache)
         # self.add_node (s, GameScene._SCENE_LAYER_HUD)
@@ -56,15 +68,19 @@ class GameScene (scene.Scene):
 
         # DEBUG
 
+        # self._ship_stats = ShipStatsHud (0, 0, game.image_cache.get ('ship_stat_hud_01'))
+        # self.add_node (self._ship_stats, GameScene._SCENE_LAYER_HUD)
+
     def update (self, dt):
         super ().update (dt)
 
         # FIXME: This is all temporary for debugging
 
-        vel = (self._playerShip.velocity / 2) * -1
+        # Set the background scroll velocity based on the ships velocity
+        background_velocity = (self._playerShip.velocity / 2) * -1
+        #self._background.set_velocity (background_velocity.x, background_velocity.y)
 
-        self._background.set_velocity (vel.x, vel.y)
-
+        self._background.set_velocity (background_velocity)
 
         for projectile in self._playerShip.projectiles:
             destroyed_asteroids = pygame.sprite.spritecollide (projectile, self._asteroids, False)

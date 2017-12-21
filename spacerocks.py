@@ -5,8 +5,9 @@
 
     Graphics credits:
 
-    Kenny		    - http://www.kenney.nl
-    Skorpio 	    - https://opengameart.org/users/skorpio
+    Kenny		        - http://www.kenney.nl
+    Skorpio 	        - https://opengameart.org/users/skorpio
+    LuminousDragonGames - https://opengameart.org/users/luminousdragongames
 
     Audio credits:
 
@@ -27,15 +28,12 @@ class Spacerocks (game.Game):
 
     WINDOW_TITLE                = 'Space Rocks'
 
-    # WINDOW_WIDTH                = 960
-    # WINDOW_HEIGHT               = 720
-
     SCREEN_WIDTH                = 1600 #1280 #1920
     SCREEN_HEIGHT               = 1280 #1080 #1080
 
     SCREEN_RECT                 = pygame.Rect (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-    FPS                         = 60     # TODO: More research here
+    FPS                         = 100     # TODO: More research here
 
     def __init__ (self):
         super ().__init__ (Spacerocks.SCREEN_WIDTH, Spacerocks.SCREEN_HEIGHT,
