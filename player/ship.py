@@ -1,6 +1,6 @@
 import pygame
 
-from gamelib import tileset
+from gamelib import spritesheet
 from gamelib import sprite
 from gamelib import utils
 
@@ -102,10 +102,10 @@ class PlayerShip (sprite.KinematicSprite):
     def screen_rect (self):
         return self._screen_rect
 
-    def update (self, dt):
-        super ().update (dt)
+    def update (self, scene, dt):
+        super ().update (scene, dt)
 
-        # self._primary_weapon.update (dt)
+        # self._primary_weapon.update (scene, dt)
 
         if self._thrust == True:
             forward = self.get_forward_vector () * self._thrust_velocity
@@ -129,7 +129,7 @@ class PlayerShip (sprite.KinematicSprite):
 
     @staticmethod
     def _get_tileset (image_cache, name, width, height):
-        return tileset.TileSet (image_cache.get (name), width, height)
+        return spritesheet.SpriteSheet (image_cache.get (name), width, height)
 
 
 class RedViper (PlayerShip):

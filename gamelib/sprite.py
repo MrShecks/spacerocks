@@ -80,8 +80,8 @@ class SceneSprite (scene.Scene.Node):
             self._update_flags |= SceneSprite._FLAG_UPDATE_FRAME
             self.__frame_index = frame_index
 
-    def update (self, dt):
-        super ().update (dt)
+    def update (self, scene, dt):
+        super ().update (scene, dt)
 
         self._update_flags = SceneSprite._FLAG_UPDATE_NONE
 
@@ -208,7 +208,7 @@ class KinematicSprite (SceneSprite):
 
         return pygame.math.Vector2 (math.sin (angle), -math.cos (angle))
 
-    def update (self, dt):
+    def update (self, scene, dt):
 
         # Recalculate the sprites angle of rotation if required
         if self.__rotation_velocity:
@@ -240,7 +240,7 @@ class KinematicSprite (SceneSprite):
 
         # Calling update () on the super class to allow any additional updates
         # to be performed on the sprite before it is drawn to the screen
-        super ().update (dt)
+        super ().update (scene, dt)
 
     @property
     def image (self):

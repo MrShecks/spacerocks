@@ -2,7 +2,7 @@ import math
 import pygame
 
 from gamelib import sprite
-from gamelib import tileset
+from gamelib import spritesheet
 
 from abc import ABC, abstractmethod
 
@@ -28,7 +28,7 @@ class PlayerWeapon (ABC):
     def get_player_ship (self):
         return self.__player_ship
 
-    def update (self, dt):
+    def update (self, scene, dt):
         pass
 
 class Missile (sprite.KinematicSprite):
@@ -46,8 +46,8 @@ class Missile (sprite.KinematicSprite):
         self.set_rotation (angle)
         self.set_max_velocity (5000, 5000)
 
-    def update (self, dt):
-        super ().update (dt)
+    def update (self, scene, dt):
+        super ().update (scene, dt)
 
         self._time_to_live -= dt
 
@@ -77,11 +77,11 @@ class Photon (sprite.KinematicSprite):
         self.set_rotation (angle)
         self.set_max_velocity (Photon.VELOCITY, Photon.VELOCITY)
 
-    def update (self, dt):
-        super ().update (dt)
+    def update (self, scene, dt):
+        super ().update (scene, dt)
 
         # TODO: At some point might need to think about pooling projectiles for performance
-        
+
         self._time_to_live -= dt
 
         if self._time_to_live <= 0 or self._screen_rect.colliderect (self.rect) == False:
@@ -89,7 +89,7 @@ class Photon (sprite.KinematicSprite):
 
     @classmethod
     def get_tileset (cls, image_cache):
-        return tileset.TileSet (image_cache.get ('photon_set_01'), Photon.WIDTH, Photon.HEIGHT)
+        return spritesheet.SpriteSheet (image_cache.get ('photon_set_01'), Photon.WIDTH, Photon.HEIGHT)
 
 
 class SingleShot (PlayerWeapon):
@@ -102,7 +102,7 @@ class SingleShot (PlayerWeapon):
 
     """
 
-    _COOLDOWN_TIMER = 50
+    _COOL_DOWN_TIMER = 50
 
     def __init__ (self, player_ship, image_cache):
         super ().__init__ (player_ship)
@@ -126,10 +126,10 @@ class SingleShot (PlayerWeapon):
 
         return [ missile ]
 
-    def update (self, dt):
+    def update (self, scene, dt):
         now = pygame.time.get_ticks ()
 
-        if now - self._last_update >= SingleShot._COOLDOWN_TIMER:
+        if now - self._last_update >= SingleShot._COOL_DOWN_TIMER:
             self._last_update = now
             self._can_fire = True
         else:
@@ -187,7 +187,7 @@ class RadialShot (PlayerWeapon):
 
     def __init__ (self, player_ship, images):
         super ().__init__ (player_ship)
-        self._tiles = tileset.TileSet (images.get ('missile_set'), Missile.MISSILE_WIDTH, Missile.MISSILE_HEIGHT)
+        self._tiles = spritesheet.SpriteSheet (images.get ('missile_set'), Missile.MISSILE_WIDTH, Missile.MISSILE_HEIGHT)
 
     def fire (self):
         player_ship = self.get_player_ship ()

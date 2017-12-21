@@ -23,8 +23,8 @@ class Scene (object):
         def scene_layer (self):
             return self.__scene_layer
 
-        def update (self, dt):
-            super ().update (dt)
+        def update (self, scene, dt):
+            super ().update (scene, dt)
 
             if _DEBUG_SPRITE_BOUNDS:
                 pygame.draw.rect (self.image, (200, 0, 0), [0, 0, self.rect.width, self.rect.height], 1)
@@ -69,7 +69,7 @@ class Scene (object):
             self.add_node (node, scene_layer)
 
     def update (self, dt):
-        self._nodes.update (dt)
+        self._nodes.update (self, dt)
 
     def draw (self, surface):
         self._nodes.draw (surface)
@@ -139,7 +139,7 @@ class SceneText (Scene.Node):
             self._font = font
             self._is_dirty = True
 
-    def update (self, dt):
+    def update (self, scene, dt):
 
         if self._is_dirty:
             pos = self.__rect.topleft
@@ -152,7 +152,7 @@ class SceneText (Scene.Node):
 
         # Calling update () on the super class to allow any additional updates
         # to be performed on the sprite before it is drawn to the screen
-        super ().update (dt)
+        super ().update (scene, dt)
 
     @property
     def image (self):

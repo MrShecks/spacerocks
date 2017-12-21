@@ -1,3 +1,4 @@
+import sys
 import pygame
 from gamelib import assets
 
@@ -52,6 +53,7 @@ class Game (object):
                 pygame.display.flip ()
 
         pygame.quit ()
+        sys.exit (0)
 
     def set_active_scene (self, scene):
 

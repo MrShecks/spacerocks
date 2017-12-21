@@ -3,7 +3,7 @@ import random
 
 from entities import entity
 from gamelib import sprite
-from gamelib import tileset
+from gamelib import spritesheet
 from gamelib import utils
 
 class Factory (object):
@@ -19,8 +19,8 @@ class Factory (object):
     def init (cls, game):
         if cls._game == None:
 
-            cls._asteroid_tiles = tileset.TileSet (game.image_cache.get (Factory._TILE_SET),
-                                                   Factory._TILE_WIDTH, Factory._TILE_HEIGHT)
+            cls._asteroid_tiles = spritesheet.SpriteSheet (game.image_cache.get (Factory._TILE_SET),
+                                                           Factory._TILE_WIDTH, Factory._TILE_HEIGHT)
             cls._game = game
 
     @classmethod
@@ -72,8 +72,8 @@ class Asteroid (entity.Entity):
         # FIXME: Return the correct subtype
         return entity.Entity.TYPE_ASTEROID_SMALL
 
-    def update (self, dt):
-        super ().update (dt)
+    def update (self, scene, dt):
+        super ().update (scene, dt)
 
         # If the asteroid runs off the edge of the screen it should warp to the opposite side
         self.rect.center = utils.clamp_point_to_rect (self.rect.center, self._screen_rect)

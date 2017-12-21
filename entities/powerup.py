@@ -3,7 +3,7 @@ import random
 
 from entities import entity
 from gamelib import sprite
-from gamelib import tileset
+from gamelib import spritesheet
 from gamelib import utils
 
 class Factory (object):
@@ -41,7 +41,7 @@ class Factory (object):
     def init (cls, game):
         if cls._game == None:
 
-            cls._frames = tileset.TileSet (game.image_cache.get ('powerup_set_01'), Factory._WIDTH, Factory._HEIGHT)
+            cls._frames = spritesheet.SpriteSheet (game.image_cache.get ('powerup_set_01'), Factory._WIDTH, Factory._HEIGHT)
             cls._game = game
 
     @classmethod
@@ -76,8 +76,8 @@ class PowerUp (entity.Entity):
     def entity_type (self):
         return entity.Entity.TYPE_POWERUP
 
-    def update (self, dt):
-        super ().update (dt)
+    def update (self, scene, dt):
+        super ().update (scene, dt)
 
         if self._time_to_live > 0:
             self._time_to_live -= dt

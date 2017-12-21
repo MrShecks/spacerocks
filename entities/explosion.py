@@ -1,5 +1,5 @@
 from gamelib import sprite
-from gamelib import tileset
+from gamelib import spritesheet
 from random import choice
 
 class Factory (object):
@@ -14,8 +14,8 @@ class Factory (object):
     def init (cls, game):
         if cls._game == None:
 
-            cls._explosion_tiles.append (tileset.TileSet (game.image_cache.get ('explosion_set_01'), 192, 192))
-            cls._explosion_tiles.append (tileset.TileSet (game.image_cache.get ('explosion_set_02'), 256, 256))
+            cls._explosion_tiles.append (spritesheet.SpriteSheet (game.image_cache.get ('explosion_set_01'), 192, 192))
+            cls._explosion_tiles.append (spritesheet.SpriteSheet (game.image_cache.get ('explosion_set_02'), 256, 256))
 
             cls._game = game
 

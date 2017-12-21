@@ -1,7 +1,6 @@
 
 
-class TileSet:
-
+class SpriteSheet:
 
     def __init__ (self, image, tile_width, tile_height):
         assert image is not None
@@ -14,10 +13,6 @@ class TileSet:
             for col in range (0, image.get_width () // tile_width):
                 tile = image.subsurface ((col * tile_width, row * tile_height, tile_width, tile_height))
                 self._tiles.append (tile)
-
-
-    def draw_tile (self, surface, x, y, index, flags = 0):
-        surface.blit (self.get_tile (index), (x, y), None, flags)
 
     def get_tile (self, index):
         return self.__getitem__ (index)

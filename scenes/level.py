@@ -1,39 +1,13 @@
-import math
 import random
 import pygame
 
 from gamelib import scene
-from gamelib import sprite
-from gamelib import tileset
 
 from player import ship
 from entities import asteroid
 from entities import explosion
 from entities import powerup
-
-class Background (sprite.StaticSprite):
-
-    def __init__ (self, width, height):
-        super ().__init__ (0, 0, pygame.Surface ((width, height)))
-        self._images = []
-
-    def add_image (self, image):
-        self._images.append (image)
-
-    def set_image (self, index):
-
-        if 0 <= index < len (self._images):
-            rows = int (math.ceil (self.rect.height / self._images[index].get_height ()))
-            cols = int (math.ceil (self.rect.width / self._images[index].get_width ()))
-
-            print ('DBG: Background::set_background (): Rows=', rows, ', Cols=', cols)
-
-            for col in range (0, cols):
-                for row in range (0, rows):
-                    # FIXME: Only blit what's needed
-                    self.image.blit (self._images[index], (col * self._images[index].get_width (),
-                                                           row * self._images[index].get_height ()))
-
+from scenes import background
 
 class GameScene (scene.Scene):
 
@@ -51,16 +25,8 @@ class GameScene (scene.Scene):
         explosion.Factory.init (game)
         powerup.Factory.init (game)
 
-        self._background = Background (game.rect.width, game.rect.height)
-        self._background.add_image (self.game.image_cache.get ('tiled_background_01'))
-        self._background.add_image (self.game.image_cache.get ('tiled_background_02'))
-        self._background.add_image (self.game.image_cache.get ('tiled_background_03'))
-        self._background.add_image (self.game.image_cache.get ('tiled_background_04'))
-        self._background.add_image (self.game.image_cache.get ('tiled_background_05'))
-        self._background.add_image (self.game.image_cache.get ('tiled_background_06'))
-        self._background.add_image (self.game.image_cache.get ('tiled_background_07'))
-
-        self._background.set_image (0)
+        self._background = background.ScrollingBackground (0, 0, game.rect.width, game.rect.height,
+                                                           self.game.image_cache.get ('tiled_background_01'))
 
         self.add_node (self._background, GameScene._SCENE_LAYER_BACKGROUND)
 
@@ -71,7 +37,10 @@ class GameScene (scene.Scene):
 
         # DEBUG
 
-        self.dbg_spawn_asteroids ()
+        # self.dbg_spawn_asteroids ()
+
+        # s = shield.Shield (self.game.rect.centerx, self.game.rect.centery, self.game.image_cache)
+        # self.add_node (s, GameScene._SCENE_LAYER_HUD)
 
         # DEBUG
 
@@ -91,6 +60,11 @@ class GameScene (scene.Scene):
         super ().update (dt)
 
         # FIXME: This is all temporary for debugging
+
+        vel = (self._playerShip.velocity / 2) * -1
+
+        self._background.set_velocity (vel.x, vel.y)
+
 
         for projectile in self._playerShip.projectiles:
             destroyed_asteroids = pygame.sprite.spritecollide (projectile, self._asteroids, False)
@@ -144,10 +118,16 @@ class GameScene (scene.Scene):
             self._playerShip.toggle_drag ()
         elif key == pygame.K_s:
             self._playerShip.toggle_shield ()
-        elif key == pygame.K_b:
-            self._background.set_image (random.randrange (0, 7))
-        elif key == pygame.K_F1:
+        elif key == pygame.K_ESCAPE:
             self.dbg_spawn_asteroids ()
+        elif key == pygame.K_F1:
+            self._playerShip.kill ()
+            self._playerShip = ship.RedViper (self.game.rect.centerx, self.game.rect.centery, self.game)
+            self.add_node (self._playerShip, GameScene._SCENE_LAYER_PLAYER_SHIP)
+        elif key == pygame.K_F2:
+            self._playerShip.kill ()
+            self._playerShip = ship.YellowHawk (self.game.rect.centerx, self.game.rect.centery, self.game)
+            self.add_node (self._playerShip, GameScene._SCENE_LAYER_PLAYER_SHIP)
         elif key == pygame.K_q:
             self.game.quit ()
 
