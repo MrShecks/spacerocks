@@ -1,5 +1,4 @@
 
-
 def clamp_point_to_rect (pt, rect):
 
     x = pt[0]

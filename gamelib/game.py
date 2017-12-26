@@ -5,7 +5,13 @@ from gamelib import assets
 class Game (object):
 
     def __init__ (self, width, height, title = '', fps_lock = 60):
+
+        #pre_init (frequency=22050, size=-16, channels=2, buffersize=4096)
+
+        pygame.mixer.pre_init (22050, -16, 16, 128)
+
         pygame.init ()
+        #pygame.mixer.init ()
 
         flags = 0 #pygame.DOUBLEBUF|pygame.HWSURFACE
 
@@ -16,6 +22,7 @@ class Game (object):
         self.__active_scene = None
 
         self.__image_cache = assets.ImageCache ()
+        self.__audio_cache = assets.AudioCache ()
 
         pygame.display.set_caption (title)
 
@@ -52,6 +59,7 @@ class Game (object):
 
                 pygame.display.flip ()
 
+        pygame.mixer.quit ()
         pygame.quit ()
         sys.exit (0)
 
@@ -75,6 +83,10 @@ class Game (object):
     @property
     def image_cache (self):
         return self.__image_cache
+
+    @property
+    def audio_cache (self):
+        return self.__audio_cache
 
     def quit (self):
         self.__is_running = False

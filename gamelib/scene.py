@@ -3,6 +3,7 @@ import pygame
 import abc
 
 _DEBUG_SPRITE_BOUNDS        = gamelib._DEBUG_SCENE and True
+_DEBUG_SPRITE_COLLISION     = gamelib._DEBUG_SCENE and True
 
 class Scene (object):
 
@@ -27,7 +28,11 @@ class Scene (object):
             super ().update (scene, dt)
 
             if _DEBUG_SPRITE_BOUNDS:
-                pygame.draw.rect (self.image, (200, 0, 0), [0, 0, self.rect.width, self.rect.height], 1)
+                pygame.draw.rect (self.image, (0, 255, 0), [0, 0, self.rect.width, self.rect.height], 1)
+
+            if _DEBUG_SPRITE_COLLISION and hasattr (self, 'radius'):
+                pygame.draw.circle (self.image, (255, 0, 0),
+                                    (self.rect.width // 2, self.rect.height // 2), self.radius, 1)
 
 
         def scene_add (self, scene, layer):
@@ -53,6 +58,10 @@ class Scene (object):
     @property
     def game (self):
         return self._game
+
+    @property
+    def rect (self):
+        return self._game.rect
 
     @property
     def object_count (self):

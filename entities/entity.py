@@ -1,4 +1,6 @@
 import abc
+import random
+import pygame
 
 from gamelib import sprite
 
@@ -17,3 +19,14 @@ class Entity (sprite.KinematicSprite):
     @abc.abstractmethod
     def entity_type (self):
         pass
+
+    @staticmethod
+    def choose_velocity (min, max):
+        vx = Entity.choose_range (min, max)
+        vy = Entity.choose_range (min, max)
+
+        return pygame.math.Vector2 (vx, vy)
+
+    @staticmethod
+    def choose_range (min, max):
+        return random.randrange (min, max) * random.choice ([1, -1])

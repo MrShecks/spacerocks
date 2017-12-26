@@ -3,17 +3,19 @@ import pygame
 
 from gamelib import sprite
 
+_DEBUG_BACKGROUND = False
+
 class ParallaxScroller (sprite.StaticSprite):
 
     class Layer (object):
 
-        def __init__ (self, tile, speed, width, height):
+        def __init__ (self, tile, speed, width, height, has_alpha):
 
             self._speed = speed
             self._x_offset = 0
             self._y_offset = 0
             self._velocity = pygame.math.Vector2 ()
-            self._surface = self._create_layer_surface (tile, width, height)
+            self._surface = self._create_layer_surface (tile, width, height, has_alpha)
 
         def set_velocity (self, velocity):
             self._velocity.x = velocity.x * self._speed
@@ -32,25 +34,47 @@ class ParallaxScroller (sprite.StaticSprite):
 
             # FIXME: This could be made more efficient, at the very least clip the rectangles to what's needed
 
-            target_surface.blit (self._surface, (self._x_offset, self._y_offset))
+            #print ('ParallaxScroller::Layer::draw (): X-offset=', self._x_offset, ', Y-offset=', self._y_offset)
+
+            if target_surface.get_rect ().collidepoint (self._x_offset, self._y_offset) or True:
+                target_surface.blit (self._surface, (self._x_offset, self._y_offset))
+            # else:
+            #     print ('Skipping: X-Blit ', self._x_offset, self._y_offset)
+
             target_surface.blit (self._surface, (self._x_offset - background_width, self._y_offset))
+
 
             target_surface.blit (self._surface, (self._x_offset, self._y_offset - background_height))
             target_surface.blit (self._surface, (self._x_offset - background_width, self._y_offset - background_height))
 
-        def _create_layer_surface (self, tile, width, height):
+        def _create_layer_surface (self, tile, width, height, has_alpha):
             rows = int (math.ceil (height / tile.get_height ()))
             cols = int (math.ceil (width / tile.get_width ()))
 
+            layer_flags = pygame.HWSURFACE
             layer_width = tile.get_width () * cols
             layer_height = tile.get_height () * rows
-            layer_surface = pygame.Surface ((layer_width, layer_height), pygame.HWSURFACE|pygame.SRCALPHA)
 
-            print ('ParallaxScroller::Layer::_create_layer_surface (): Tile=', tile.get_rect (), ', Width=', layer_width, ', Height=', layer_height, ', Rows=', rows, ', Columns=', cols)
+            if has_alpha:
+                layer_flags |= pygame.SRCALPHA
+
+            layer_surface = pygame.Surface ((layer_width, layer_height), layer_flags)
+
+            print ('ParallaxScroller::Layer::_create_layer_surface (): Tile=', tile.get_rect (),
+                   ', Width=', layer_width, ', Height=', layer_height, ', Rows=', rows, ', Columns=', cols)
 
             for col in range (cols):
                 for row in range (rows):
                     layer_surface.blit (tile, (col * tile.get_width (), row * tile.get_height ()))
+
+                    if _DEBUG_BACKGROUND:
+                        rect = pygame.Rect (col * tile.get_width (),
+                                            row * tile.get_height (),
+                                            tile.get_width (),
+                                            tile.get_height ())
+
+                        rect.inflate_ip (10, 10)
+                        pygame.draw.rect (layer_surface, (200, 0, 0), rect, 1)
 
             return layer_surface
 
@@ -63,8 +87,8 @@ class ParallaxScroller (sprite.StaticSprite):
         for layer in self._layers:
             layer.set_velocity (velocity)
 
-    def add_layer (self, tile, speed):
-        self._layers.append (ParallaxScroller.Layer (tile, speed, self.rect.width, self.rect.height))
+    def add_layer (self, tile, speed, has_alpha = True):
+        self._layers.append (ParallaxScroller.Layer (tile, speed, self.rect.width, self.rect.height, has_alpha))
 
     def update (self, scene, dt):
 

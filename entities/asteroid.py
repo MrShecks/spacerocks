@@ -42,13 +42,15 @@ class Asteroid (entity.Entity):
     _TYPE_FIRST             = TYPE_TINY
     _TYPE_LAST              = TYPE_LARGE
 
-    _MIN_VELOCITY           = -400
-    _MAX_VELOCITY           = 400
+    _MIN_VELOCITY           = 100
+    _MAX_VELOCITY           = 200
 
-    _MIN_ROTATE_VELOCITY    = -100
-    _MAX_ROTATE_VELOCITY    = 100
+    _MIN_ROTATE_VELOCITY    = 50
+    _MAX_ROTATE_VELOCITY    = 200
 
     _FRAME_SPEED            = 100
+
+    _COLLISION_RADIUS       = 44
 
     _TYPE_TO_SCALE = {
         TYPE_LARGE:         1.00,
@@ -59,11 +61,11 @@ class Asteroid (entity.Entity):
 
 
     def __init__ (self, x, y, frames, type, screen_rect):
-        super ().__init__ (x, y, frames, 0, self._get_velocity ())
+        super ().__init__ (x, y, frames, 0, self.choose_velocity (Asteroid._MIN_VELOCITY, Asteroid._MAX_VELOCITY))
 
         self._type = type
         self._screen_rect = screen_rect
-        self.set_rotation_velocity (random.randrange (Asteroid._MIN_ROTATE_VELOCITY, Asteroid._MAX_ROTATE_VELOCITY))
+        self.set_rotation_velocity (self.choose_range (Asteroid._MIN_ROTATE_VELOCITY, Asteroid._MAX_ROTATE_VELOCITY))
         self.set_frame_animator (sprite.LinearFrameAnimator (Asteroid._FRAME_SPEED, True))
         self.set_scale (Asteroid._TYPE_TO_SCALE[type])
 
@@ -72,11 +74,18 @@ class Asteroid (entity.Entity):
         # FIXME: Return the correct subtype
         return entity.Entity.TYPE_ASTEROID_SMALL
 
+    @property
+    def radius (self):
+        return int (Asteroid._COLLISION_RADIUS * self.scale)
+
+    def reflect (self):
+        self.set_velocity (self.velocity.x * -1, self.velocity.y * -1)
+
     def update (self, scene, dt):
         super ().update (scene, dt)
 
         # If the asteroid runs off the edge of the screen it should warp to the opposite side
-        self.rect.center = utils.clamp_point_to_rect (self.rect.center, self._screen_rect)
+        self.rect.center = utils.clamp_point_to_rect (self.rect.center, scene.rect)
 
     def get_shards (self):
 
@@ -93,8 +102,3 @@ class Asteroid (entity.Entity):
             shards.append (Factory.create (self.position.x, self.position.y, shard_type[1]))
 
         return shards
-
-
-    def _get_velocity (self):
-        return pygame.math.Vector2 (random.randrange (Asteroid._MIN_VELOCITY, Asteroid._MAX_VELOCITY),
-                                    random.randrange (Asteroid._MIN_VELOCITY, Asteroid._MAX_VELOCITY))

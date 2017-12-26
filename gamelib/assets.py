@@ -63,7 +63,11 @@ class ImageCache (AssetCache):
         image = None
 
         if file_extension in ['.png', '.jpg', '.jpeg']:
-            image = pygame.image.load (os.path.join (path, filename)).convert_alpha ()
+
+            if file_extension == '.png':
+                image = pygame.image.load (os.path.join (path, filename)).convert_alpha ()
+            else:
+                image = pygame.image.load (os.path.join (path, filename)).convert ()
 
         return image
 
@@ -81,9 +85,13 @@ class AudioCache (AssetCache):
         super ().__init__ ()
 
     def _loadfile (self, path, filename):
-        # TODO: Load audio files
+        file_extension = os.path.splitext (filename)[1]
+        sound = None
 
-        return None
+        if file_extension in ['.wav', '.ogg']:
+            sound = pygame.mixer.Sound (os.path.join (path, filename))
+
+        return sound
 
 
 # TODO: Add TileSetCache (Maybe put all tileset in a sub director of 'images'

@@ -36,7 +36,7 @@ class GameScene (scene.Scene):
         #                                                    self.game.image_cache.get ('tiled_background_01'))
 
         self._background = background.ParallaxScroller (0, 0, game.rect.width, game.rect.height)
-        self._background.add_layer (game.image_cache.get ('tiled_background_01'), 0.4)
+        self._background.add_layer (game.image_cache.get ('tiled_background_01'), 0.4, False)
         self._background.add_layer (game.image_cache.get ('parallax_layer_02'), 0.6)
         self._background.add_layer (game.image_cache.get ('parallax_layer_01'), 0.8)
 
@@ -46,6 +46,7 @@ class GameScene (scene.Scene):
         self.add_node (self._playerShip, GameScene._SCENE_LAYER_PLAYER_SHIP)
 
         self._asteroids = pygame.sprite.Group ()
+        self._powerups = pygame.sprite.Group ()
 
         # DEBUG
 
@@ -68,43 +69,68 @@ class GameScene (scene.Scene):
 
         # DEBUG
 
-        # self._ship_stats = ShipStatsHud (0, 0, game.image_cache.get ('ship_stat_hud_01'))
-        # self.add_node (self._ship_stats, GameScene._SCENE_LAYER_HUD)
-
     def update (self, dt):
         super ().update (dt)
 
-        # FIXME: This is all temporary for debugging
-
         # Set the background scroll velocity based on the ships velocity
-        background_velocity = (self._playerShip.velocity / 2) * -1
-        #self._background.set_velocity (background_velocity.x, background_velocity.y)
+        self._background.set_velocity (self._playerShip.velocity * -1)
 
-        self._background.set_velocity (background_velocity)
-
-        for projectile in self._playerShip.projectiles:
-            destroyed_asteroids = pygame.sprite.spritecollide (projectile, self._asteroids, False)
-
-            if destroyed_asteroids:
-                projectile.kill ()
-
-                for dead_asteroid in destroyed_asteroids:
-                    exp = explosion.Factory.create (dead_asteroid.rect.centerx, dead_asteroid.rect.centery)
-                    self.add_node (exp, GameScene._SCENE_LAYER_EXPLOSION)
-
-                    if random.randint (1, 10) == 5:
-                        p = powerup.Factory.create (dead_asteroid.rect.centerx, dead_asteroid.rect.centery)
-                        self.add_node (p, GameScene._SCENE_LAYER_POWERUP)
-
-                    shards = dead_asteroid.get_shards ()
-                    if shards:
-                        self.add_nodes (shards, GameScene._SCENE_LAYER_ASTEROID)
-                        self._asteroids.add (shards)
-
-                    dead_asteroid.kill ()
+        self.check_collisions (dt)
 
         self._fps_label.set_text ('FPS: {0:03d} OBJ: {1:04d}'.format (int (self.game.fps), self.object_count))
         self._stat_label.set_text ('(D)rag={0}, (S)hield={1}'.format (self._playerShip._has_drag, self._playerShip._has_shield))
+
+    def check_collisions (self, dt):
+        #self.check_asteroid_collisions (dt)
+        self.check_player_collisions (dt)
+        self.check_projectile_collisions (dt)
+        self.check_powerup_collisions (dt)
+
+    def check_asteroid_collisions (self, dt):
+        for asteroid in self._asteroids:
+            collisions = pygame.sprite.spritecollide (asteroid, self._asteroids, False, pygame.sprite.collide_circle)
+            for colliding_asteroid in collisions:
+                if asteroid is not colliding_asteroid:
+                    colliding_asteroid.reflect ()
+
+    def check_player_collisions (self, dt):
+        # TODO: Check for player + asteroid collisions
+        # TODO: Check for player + powerup collisions here too instead of in check_powerup_collisions ()
+        pass
+
+    def check_projectile_collisions (self, dt):
+        for projectile in self._playerShip.projectiles:
+            colliding_asteroids = pygame.sprite.spritecollide (projectile, self._asteroids, False, pygame.sprite.collide_circle)
+
+            if colliding_asteroids:
+                projectile.kill ()
+
+                for asteroid in colliding_asteroids:
+                    exp = explosion.Factory.create (asteroid.rect.centerx, asteroid.rect.centery)
+                    self.add_node (exp, GameScene._SCENE_LAYER_EXPLOSION)
+
+                    asteroid_shards = asteroid.get_shards ()
+
+                    if asteroid_shards:
+                        self.add_nodes (asteroid_shards, GameScene._SCENE_LAYER_ASTEROID)
+                        self._asteroids.add (asteroid_shards)
+
+                    if random.randint (1, 10) == 5:
+                        p = powerup.Factory.create (asteroid.rect.centerx, asteroid.rect.centery)
+                        self.add_node (p, GameScene._SCENE_LAYER_POWERUP)
+                        self._powerups.add (p)
+
+                    exp.sound.play ()
+                    asteroid.kill ()
+
+    def check_powerup_collisions (self, dt):
+
+        # TODO - Apply powerup to player
+        collisions = pygame.sprite.spritecollide (self._playerShip, self._powerups, False, pygame.sprite.collide_circle)
+
+        for powerup in collisions:
+            powerup.sound.play ()
+            powerup.kill ()
 
     def on_key_down (self, key, event):
 

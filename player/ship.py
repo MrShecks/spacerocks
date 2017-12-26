@@ -40,6 +40,8 @@ class PlayerShip (sprite.KinematicSprite):
     _ROTATE_VELOCITY        = 200           # Rotation speed in degrees per second
     _SHIP_DRAG              = 100           # Deceleration in pixels per second
 
+    _COLLISION_RADIUS       = 80
+
     def __init__ (self, x, y, tileset_name, tile_width, tile_height, scale, game):
         super ().__init__ (x, y, self._get_tileset (game.image_cache, tileset_name, tile_width, tile_height))
 
@@ -57,11 +59,16 @@ class PlayerShip (sprite.KinematicSprite):
 
         self._projectiles = pygame.sprite.Group ()
 
-        self._primary_weapon = weapons.SingleShot (self, game.image_cache)
-        self._secondary_weapon = weapons.DoubleShot (self, game.image_cache)
+        self._primary_weapon = weapons.SingleShot (game, self)
+        self._secondary_weapon = weapons.DoubleShot (game, self)
 
-        #self._secondary_weapon = weapons.RadialShot (self, image_cache)
+        # self._primary_weapon = weapons.DoubleShot (game, self)
+        # self._secondary_weapon = weapons.RadialShot (game, self)
 
+
+    @property
+    def radius (self):
+        return int (PlayerShip._COLLISION_RADIUS * self.scale)
 
     def rotate (self, type):
         self.set_rotation_velocity (PlayerShip._ROTATE_VELOCITY * type)

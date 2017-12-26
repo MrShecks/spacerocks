@@ -173,6 +173,10 @@ class KinematicSprite (SceneSprite):
         self._rect.x = x
         self._rect.y = y
 
+    def set_velocity (self, x, y):
+        self.__velocity.x = x
+        self.__velocity.y = y
+
     def set_acceleration (self, x, y):
         self.__acceleration.x = x
         self.__acceleration.y = y
@@ -263,13 +267,11 @@ class KinematicSprite (SceneSprite):
 
         return utils.clamp (velocity, -max_velocity, max_velocity)
 
-    # DEBUG - Review
-
     def __repr__ (self):
-        return 'rect={0}, velocity={1}, acceleration={2}, rotation={3}, rotation_velocity={4}'\
-            .format (self._rect, self.__velocity, self.__acceleration, self.__rotation, self.__rotation_velocity)
+        return 'rect={0}, velocity={1}, acceleration={2}, rotation={3}, rotation_velocity={4}, scale={5}'\
+            .format (self._rect, self.__velocity, self.__acceleration, self.__rotation,
+                     self.__rotation_velocity, self.__scale)
 
-    # DEBUG - Review
 
 
 class LinearFrameAnimator (SceneSprite.Animator):
