@@ -1,4 +1,3 @@
-import pygame
 import random
 
 from entities import entity
@@ -8,12 +7,46 @@ from gamelib import utils
 
 class Factory (object):
 
-    _TILE_WIDTH      = 128
-    _TILE_HEIGHT     = 128
-    _TILE_SET        = 'asteroid_set_01'
+    # --------------------------------------------------------------------------------------------------
 
-    _game           = None
-    _asteroid_tiles = None
+    class Config (object):
+        def __init__ (self, scale, max_hit_points, max_damage_points, max_shards, shard_type):
+
+            self._scale = scale
+            self._max_hit_points = max_hit_points
+            self._max_damage_points = max_damage_points
+            self._max_shards = max_shards
+            self._shard_type = shard_type
+
+        @property
+        def scale (self):
+            return self._scale
+
+        @property
+        def max_hit_points (self):
+            return self._max_hit_points
+
+        @property
+        def max_damage_points (self):
+            return self._max_damage_points
+
+        @property
+        def max_shards (self):
+            return self._max_shards
+
+        @property
+        def shard_type (self):
+            return self._shard_type
+
+    # --------------------------------------------------------------------------------------------------
+
+    _TILE_WIDTH         = 128
+    _TILE_HEIGHT        = 128
+    _TILE_SET           = 'asteroid_set_01'
+
+    _game               = None
+    _asteroid_tiles     = None
+    _asteroid_config    = {}
 
     @classmethod
     def init (cls, game):
@@ -21,6 +54,12 @@ class Factory (object):
 
             cls._asteroid_tiles = spritesheet.SpriteSheet (game.image_cache.get (Factory._TILE_SET),
                                                            Factory._TILE_WIDTH, Factory._TILE_HEIGHT)
+
+            cls._asteroid_config[Asteroid.TYPE_LARGE]   = Factory.Config (1.00, 200, 60, 2, Asteroid.TYPE_MEDIUM)
+            cls._asteroid_config[Asteroid.TYPE_MEDIUM]  = Factory.Config (0.80, 150, 40, 2, Asteroid.TYPE_SMALL)
+            cls._asteroid_config[Asteroid.TYPE_SMALL]   = Factory.Config (0.60, 100, 20, 2, Asteroid.TYPE_TINY)
+            cls._asteroid_config[Asteroid.TYPE_TINY]    = Factory.Config (0.40,  50, 10, 0, 0)
+
             cls._game = game
 
     @classmethod
@@ -29,7 +68,7 @@ class Factory (object):
         if type is None or not (Asteroid._TYPE_FIRST <= type <= Asteroid._TYPE_LAST):
             type = random.randrange (Asteroid._TYPE_FIRST, Asteroid._TYPE_LAST + 1)
 
-        return Asteroid (x, y, cls._asteroid_tiles, type, cls._game.rect)
+        return Asteroid (x, y, cls._asteroid_tiles, type, cls._asteroid_config[type])
 
 
 class Asteroid (entity.Entity):
@@ -52,22 +91,15 @@ class Asteroid (entity.Entity):
 
     _COLLISION_RADIUS       = 44
 
-    _TYPE_TO_SCALE = {
-        TYPE_LARGE:         1.00,
-        TYPE_MEDIUM:        0.80,
-        TYPE_SMALL:         0.60,
-        TYPE_TINY:          0.40
-    }
-
-
-    def __init__ (self, x, y, frames, type, screen_rect):
+    def __init__ (self, x, y, frames, type, config):
         super ().__init__ (x, y, frames, 0, self.choose_velocity (Asteroid._MIN_VELOCITY, Asteroid._MAX_VELOCITY))
 
         self._type = type
-        self._screen_rect = screen_rect
+        self._config = config
+
         self.set_rotation_velocity (self.choose_range (Asteroid._MIN_ROTATE_VELOCITY, Asteroid._MAX_ROTATE_VELOCITY))
         self.set_frame_animator (sprite.LinearFrameAnimator (Asteroid._FRAME_SPEED, True))
-        self.set_scale (Asteroid._TYPE_TO_SCALE[type])
+        self.set_scale (config.scale)
 
     @property
     def entity_type (self):
@@ -77,6 +109,10 @@ class Asteroid (entity.Entity):
     @property
     def radius (self):
         return int (Asteroid._COLLISION_RADIUS * self.scale)
+
+    @property
+    def score (self):
+        return self._config.max_hit_points * (self._type + 1)
 
     def reflect (self):
         self.set_velocity (self.velocity.x * -1, self.velocity.y * -1)
@@ -88,17 +124,9 @@ class Asteroid (entity.Entity):
         self.rect.center = utils.clamp_point_to_rect (self.rect.center, scene.rect)
 
     def get_shards (self):
-
-        shard_type = {
-            Asteroid.TYPE_TINY:     (0, 0),
-            Asteroid.TYPE_SMALL:    (2, Asteroid.TYPE_TINY),
-            Asteroid.TYPE_MEDIUM:   (2, Asteroid.TYPE_SMALL),
-            Asteroid.TYPE_LARGE:    (2, Asteroid.TYPE_MEDIUM)
-        }[self._type]
-
         shards = []
 
-        for n in range (shard_type[0]):
-            shards.append (Factory.create (self.position.x, self.position.y, shard_type[1]))
+        for n in range (self._config.max_shards):
+            shards.append (Factory.create (self.position.x, self.position.y, self._config.shard_type))
 
         return shards

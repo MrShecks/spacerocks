@@ -12,6 +12,7 @@ class Entity (sprite.KinematicSprite):
     TYPE_ASTEROID_HUGE      = 3
 
     TYPE_POWERUP            = 4
+    TYPE_FLOATING_TEXT      = 5
 
     TYPE_INVALID            = -1
 

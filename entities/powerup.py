@@ -8,6 +8,39 @@ from gamelib import utils
 
 class Factory (object):
 
+    # --------------------------------------------------------------------------------------------------
+
+    class Config (object):
+        def __init__ (self, powerup_type, sound, name, description, text_color = (255, 255, 255)):
+
+            self._powerup_type = powerup_type
+            self._sound = sound
+            self._name = name
+            self._description = description
+            self._text_color = text_color
+
+        @property
+        def powerup_type (self):
+            return self._powerup_type
+
+        @property
+        def sound (self):
+            return self._sound
+
+        @property
+        def name (self):
+            return self._name
+
+        @property
+        def description (self):
+            return self._description
+
+        @property
+        def text_color (self):
+            return self._text_color
+
+    # --------------------------------------------------------------------------------------------------
+
     TYPE_POWER_YELLOW       = 0
     TYPE_POWER_RED          = 1
     TYPE_POWER_WHITE        = 2
@@ -34,9 +67,14 @@ class Factory (object):
 
     _TIME_TO_LIVE           = 10
 
+    _COLOR_RED              = (200, 0, 0)
+    _COLOR_YELLOW           = (200, 200, 0)
+    _COLOR_WHITE            = (255, 255, 255)
+
     _game                   = None
     _frames                 = []
     _sounds                 = []
+    _powerup_config         = {}
 
     @classmethod
     def init (cls, game):
@@ -50,6 +88,24 @@ class Factory (object):
             cls._sounds.append (game.audio_cache.get ('powerup_04'))
             cls._sounds.append (game.audio_cache.get ('powerup_05'))
 
+            # FIXME: Python must have a nicer way to do this
+            cls._powerup_config[Factory.TYPE_POWER_YELLOW]  = Factory.Config (Factory.TYPE_POWER_YELLOW, random.choice (cls._sounds), 'Yellow Power-up', '', Factory._COLOR_YELLOW)
+            cls._powerup_config[Factory.TYPE_POWER_RED]     = Factory.Config (Factory.TYPE_POWER_RED, random.choice (cls._sounds), 'Red Power-up', '', Factory._COLOR_RED)
+            cls._powerup_config[Factory.TYPE_POWER_WHITE]   = Factory.Config (Factory.TYPE_POWER_WHITE, random.choice (cls._sounds), 'White Power-up', '', Factory._COLOR_WHITE)
+
+            cls._powerup_config[Factory.TYPE_STAR_YELLOW]   = Factory.Config (Factory.TYPE_STAR_YELLOW, random.choice (cls._sounds), 'Yellow Star', '', Factory._COLOR_YELLOW)
+            cls._powerup_config[Factory.TYPE_STAR_RED]      = Factory.Config (Factory.TYPE_STAR_RED, random.choice (cls._sounds), 'Red Star', '', Factory._COLOR_RED)
+            cls._powerup_config[Factory.TYPE_STAR_WHITE]    = Factory.Config (Factory.TYPE_STAR_WHITE, random.choice (cls._sounds), 'White Star', '', Factory._COLOR_WHITE)
+
+            cls._powerup_config[Factory.TYPE_ENERGY_YELLOW] = Factory.Config (Factory.TYPE_ENERGY_YELLOW, random.choice (cls._sounds), 'Yellow Energy', '', Factory._COLOR_YELLOW)
+            cls._powerup_config[Factory.TYPE_ENERGY_RED]    = Factory.Config (Factory.TYPE_ENERGY_RED, random.choice (cls._sounds), 'Red Energy', '', Factory._COLOR_RED)
+            cls._powerup_config[Factory.TYPE_ENERGY_WHITE]  = Factory.Config (Factory.TYPE_ENERGY_WHITE, random.choice (cls._sounds), 'White Energy', '', Factory._COLOR_WHITE)
+
+            cls._powerup_config[Factory.TYPE_SHIELD_YELLOW] = Factory.Config (Factory.TYPE_SHIELD_YELLOW, random.choice (cls._sounds), 'Yellow Shield', '', Factory._COLOR_YELLOW)
+            cls._powerup_config[Factory.TYPE_SHIELD_RED]    = Factory.Config (Factory.TYPE_SHIELD_RED, random.choice (cls._sounds), 'Red Shield', '', Factory._COLOR_RED)
+            cls._powerup_config[Factory.TYPE_SHIELD_WHITE]  = Factory.Config (Factory.TYPE_SHIELD_WHITE, random.choice (cls._sounds), 'White Shield', '', Factory._COLOR_WHITE)
+
+
             cls._game = game
 
     @classmethod
@@ -59,7 +115,7 @@ class Factory (object):
             type = random.randrange (Factory._TYPE_COUNT)
 
         frames = cls._frames[type * Factory._FRAME_COUNT:(type + 1) * Factory._FRAME_COUNT]
-        shield = PowerUp (x, y, type, frames, Factory._FRAME_TIME, Factory._TIME_TO_LIVE, random.choice (cls._sounds))
+        shield = PowerUp (x, y, cls._powerup_config[type], frames, Factory._FRAME_TIME, Factory._TIME_TO_LIVE)
 
         return shield
 
@@ -73,23 +129,26 @@ class PowerUp (entity.Entity):
 
     _COLLISION_RADIUS       = 38
 
-    def __init__ (self, x, y, type, frames, frame_speed, time_to_live, sound):
+    def __init__ (self, x, y, config, frames, frame_speed, time_to_live):
         super ().__init__ (x, y, frames, 0, self.choose_velocity (PowerUp._MIN_VELOCITY, PowerUp._MAX_VELOCITY))
 
-        self._type = type
+        self._config = config
         self._time_to_live = time_to_live
-        self._sound = sound
 
         self.set_frame_animator (sprite.LinearFrameAnimator (frame_speed, True))
         self.set_rotation_velocity (self.choose_range (PowerUp._MIN_ROTATION_VELOCITY, PowerUp._MAX_ROTATION_VELOCITY))
 
     @property
-    def sound (self):
-        return self._sound
+    def config (self):
+        return self._config
 
     @property
     def entity_type (self):
         return entity.Entity.TYPE_POWERUP
+
+    @property
+    def powerup_type (self):
+        return self._config.powerup_type
 
     @property
     def radius (self):

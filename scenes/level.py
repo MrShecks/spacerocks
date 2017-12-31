@@ -7,6 +7,7 @@ from player import ship
 from entities import asteroid
 from entities import explosion
 from entities import powerup
+from entities import floatingtext
 from scenes import background
 
 from gamelib import sprite
@@ -31,6 +32,10 @@ class GameScene (scene.Scene):
         asteroid.Factory.init (game)
         explosion.Factory.init (game)
         powerup.Factory.init (game)
+        floatingtext.Factory.init (game)
+
+
+        self._score_font = game.load_font ('kenvector_future.ttf', 32)
 
         # self._background = background.ScrollingBackground (0, 0, game.rect.width, game.rect.height,
         #                                                    self.game.image_cache.get ('tiled_background_01'))
@@ -48,6 +53,13 @@ class GameScene (scene.Scene):
         self._asteroids = pygame.sprite.Group ()
         self._powerups = pygame.sprite.Group ()
 
+        self._score = 0
+
+        self._score_label = scene.SceneText (game.rect.right - 380, 5, 'SCORE: 00000000',
+                                             self._score_font, (200, 200, 0))
+
+        self.add_node (self._score_label, GameScene._SCENE_LAYER_HUD)
+
         # DEBUG
 
         self.dbg_spawn_asteroids ()
@@ -59,11 +71,13 @@ class GameScene (scene.Scene):
 
         # DEBUG - Testing SceneText node
 
-        self._fps_label = scene.SceneText (game.rect.right - 180, 5, 'FPS: 000 OBJ: 0000', pygame.font.SysFont ('', 26))
+        self._fps_label = scene.SceneText (game.rect.right - 180, game.rect.bottom - 26, 'FPS: 000 OBJ: 0000',
+                                           pygame.font.SysFont ('', 26), (100, 100, 100))
+
         self.add_node (self._fps_label, GameScene._SCENE_LAYER_HUD)
 
         self._stat_label = scene.SceneText (5, game.rect.bottom - 26, '(D)rag: ?, (S)hield: ?',
-                                            pygame.font.SysFont ('', 26))
+                                            pygame.font.SysFont ('', 26), (100, 100, 100))
 
         self.add_node (self._stat_label, GameScene._SCENE_LAYER_HUD)
 
@@ -77,6 +91,7 @@ class GameScene (scene.Scene):
 
         self.check_collisions (dt)
 
+        self._score_label.set_text ('SCORE: {0:08d}'.format (self._score))
         self._fps_label.set_text ('FPS: {0:03d} OBJ: {1:04d}'.format (int (self.game.fps), self.object_count))
         self._stat_label.set_text ('(D)rag={0}, (S)hield={1}'.format (self._playerShip._has_drag, self._playerShip._has_shield))
 
@@ -120,6 +135,12 @@ class GameScene (scene.Scene):
                         self.add_node (p, GameScene._SCENE_LAYER_POWERUP)
                         self._powerups.add (p)
 
+                    text = floatingtext.Factory.create (asteroid.position.x, asteroid.position.y,
+                                                        '+{0}'.format (asteroid.score), (200, 200, 0))
+
+                    self.add_node (text, GameScene._SCENE_LAYER_HUD)
+                    self._score += asteroid.score
+
                     exp.sound.play ()
                     asteroid.kill ()
 
@@ -129,7 +150,13 @@ class GameScene (scene.Scene):
         collisions = pygame.sprite.spritecollide (self._playerShip, self._powerups, False, pygame.sprite.collide_circle)
 
         for powerup in collisions:
-            powerup.sound.play ()
+            text = floatingtext.Factory.create (powerup.position.x, powerup.position.y,
+                                                powerup.config.name, powerup.config.text_color)
+
+            self.add_node (text, GameScene._SCENE_LAYER_HUD)
+
+
+            powerup.config.sound.play ()
             powerup.kill ()
 
     def on_key_down (self, key, event):

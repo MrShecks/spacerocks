@@ -1,5 +1,4 @@
-import sys
-import pygame
+import os, sys, pygame
 from gamelib import assets
 
 class Game (object):
@@ -15,6 +14,7 @@ class Game (object):
 
         flags = 0 #pygame.DOUBLEBUF|pygame.HWSURFACE
 
+        self.__root_path = os.path.dirname (sys.modules['__main__'].__file__)
         self.__surface = pygame.display.set_mode ((width, height), flags)
         self.__fps_lock = fps_lock
 
@@ -87,6 +87,17 @@ class Game (object):
     @property
     def audio_cache (self):
         return self.__audio_cache
+
+    @property
+    def root_path (self):
+        return self.__root_path
+
+    @property
+    def assets_path (self):
+        return os.path.join (self.root_path, 'assets')
+
+    def get_assets_path (self, sub_path):
+        return os.path.join (self.assets_path, sub_path)
 
     def quit (self):
         self.__is_running = False

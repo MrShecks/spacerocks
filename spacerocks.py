@@ -16,6 +16,10 @@
                                   (https://opengameart.org/content/space-battle-game-sounds-astromenace)
 
 
+    Fonts:
+
+    Kenny                       - http://www.kenney.nl + https://opengameart.org/content/space-shooter-redux
+
     Assets used under Public Domain or Creative Commons License (http://tinyurl.com/2dkzmd)
 
 """
@@ -26,7 +30,6 @@ import pygame
 
 from gamelib import game
 from scenes import level
-
 
 class Spacerocks (game.Game):
 
@@ -47,27 +50,17 @@ class Spacerocks (game.Game):
         super ().__init__ (Spacerocks.SCREEN_WIDTH, Spacerocks.SCREEN_HEIGHT,
                            Spacerocks.WINDOW_TITLE, Spacerocks.FPS)
 
-
-        # ----------------------------------------------------------------
-        # DEBUG
-        # Figuring out how joysticks work with PyGame
-
-        # print ('Joysticks: ', pygame.joystick.get_count())
-        #
-        # joy = pygame.joystick.Joystick (0)
-        # joy.init ()
-
-        # DEBUG
-        # ----------------------------------------------------------------
-
-        assets_path = os.path.join (os.path.dirname (__file__), 'assets')
-
-        self.image_cache.load (os.path.join (assets_path, 'images'))
-        self.audio_cache.load (os.path.join (assets_path, 'sounds'))
+        self.image_cache.load (self.get_assets_path ('images'))
+        self.audio_cache.load (self.get_assets_path ('sounds'))
 
         self._scene = level.GameScene (self)
 
         self.set_active_scene (self._scene)
+
+    def load_font (self, filename, size):
+        path = self.get_assets_path ('fonts')
+
+        return pygame.font.Font (os.path.join (path, filename), size)
 
     def on_quit (self):
         return True
