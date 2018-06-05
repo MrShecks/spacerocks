@@ -63,8 +63,7 @@ class PlayerShip (sprite.KinematicSprite):
         self._secondary_weapon = weapons.DoubleShot (game, self)
 
         # self._primary_weapon = weapons.DoubleShot (game, self)
-        # self._secondary_weapon = weapons.RadialShot (game, self)
-
+        #self._secondary_weapon = weapons.RadialShot (game, self)
 
     @property
     def radius (self):
@@ -84,7 +83,6 @@ class PlayerShip (sprite.KinematicSprite):
             if projectiles:
                 self.scene.add_nodes (projectiles, self.scene_layer)
                 self._projectiles.add (projectiles)
-
 
     def set_thrust (self, thrust):
         self._thrust = thrust

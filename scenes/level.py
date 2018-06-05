@@ -223,19 +223,19 @@ class GameScene (scene.Scene):
     def dbg_spawn_asteroids (self):
         # DEBUG - Create some random asteroids for testing
 
-        types = [
+        asteroid_types = [
             asteroid.Asteroid.TYPE_TINY,
             asteroid.Asteroid.TYPE_SMALL,
             asteroid.Asteroid.TYPE_MEDIUM,
             asteroid.Asteroid.TYPE_LARGE,
         ]
 
-        for type in types:
+        for asteroid_type in asteroid_types:
             for n in range (0, 3):
                 x = random.randrange (self.game.rect.width)
                 y = random.randrange (self.game.rect.height)
 
-                a = asteroid.Factory.create (x, y, type)
+                a = asteroid.Factory.create (x, y, asteroid_type)
 
                 self.add_node (a, GameScene._SCENE_LAYER_ASTEROID)
                 self._asteroids.add (a)
