@@ -20,7 +20,7 @@ Shecks
 
 ### Videos
 
-TODO: Record some new videos of the current state of play ...
+- [Current State Of Play](https://youtu.be/i3qsj4xbif0)
 
 ### Screenshots
 
