@@ -14,6 +14,8 @@ new technology along the way ... I'm still not a very "Pythonic" Python develope
 **Note** This is an unfinished project, I might pick it up again sometime in the future to refresh my Python skills or if I
 come up with any fun new weapons to try out.
 
+Shecks
+
 ## What it looks like...
 
 ### Videos
