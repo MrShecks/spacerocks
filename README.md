@@ -24,9 +24,9 @@ TODO: Record some new videos of the current state of play ...
 
 ### Screenshots
 
-![Spacerocks](docs/screenshots/spacerocks-001.png)
+![Spacerocks](docs/screenshots/spacerocks_001.png)
 
-![Spacerocks](docs/screenshots/spacerocks-002.png)
+![Spacerocks](docs/screenshots/spacerocks_002.png)
 
 ## Original Game:
 
