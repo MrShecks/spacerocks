@@ -32,6 +32,6 @@ TODO: Record some new videos of the current state of play ...
 
 ### Videos
 
-[Game Play](https://www.youtube.com/watch?v=C52dIKihVuY)
-[Weapon Testing](https://www.youtube.com/watch?v=m-vDMGEEwo)
-[More Weapon Testing](https://www.youtube.com/watch?v=14Cpc2aiFjA)
+- [Game Play](https://www.youtube.com/watch?v=C52dIKihVuY)
+- [Weapon Testing](https://www.youtube.com/watch?v=m-vDMGEEwo)
+- [More Weapon Testing](https://www.youtube.com/watch?v=14Cpc2aiFjA)
