@@ -31,44 +31,42 @@ import pygame
 from gamelib import game
 from scenes import level
 
+
 class Spacerocks (game.Game):
 
-    WINDOW_TITLE                = 'Space Rocks'
+    WINDOW_TITLE = 'Space Rocks'
 
     # TODO: Scale all game objects based on resolution
 
-    SCREEN_RESOLUTIONS          = [ (1920, 1080), (1280, 720), (854, 480) ]
+    SCREEN_RESOLUTIONS = [(1920, 1080), (1280, 720), (854, 480)]
 
-    SCREEN_WIDTH                = SCREEN_RESOLUTIONS[0][0]
-    SCREEN_HEIGHT               = SCREEN_RESOLUTIONS[0][1]
+    SCREEN_WIDTH = SCREEN_RESOLUTIONS[0][0]
+    SCREEN_HEIGHT = SCREEN_RESOLUTIONS[0][1]
 
-    SCREEN_RECT                 = pygame.Rect (0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
+    SCREEN_RECT = pygame.Rect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT)
 
-    FPS                         = 100
+    FPS = 100
 
-    def __init__ (self):
-        super ().__init__ (Spacerocks.SCREEN_WIDTH, Spacerocks.SCREEN_HEIGHT,
-                           Spacerocks.WINDOW_TITLE, Spacerocks.FPS)
+    def __init__(self):
+        super().__init__(Spacerocks.SCREEN_WIDTH, Spacerocks.SCREEN_HEIGHT,
+                         Spacerocks.WINDOW_TITLE, Spacerocks.FPS)
 
-        self.image_cache.load (self.get_assets_path ('images'))
-        self.audio_cache.load (self.get_assets_path ('sounds'))
+        self.image_cache.load(self.get_assets_path('images'))
+        self.audio_cache.load(self.get_assets_path('sounds'))
 
-        self._scene = level.GameScene (self)
+        self._scene = level.GameScene(self)
 
-        self.set_active_scene (self._scene)
+        self.set_active_scene(self._scene)
 
-    def load_font (self, filename, size):
-        path = self.get_assets_path ('fonts')
+    def load_font(self, filename, size):
+        path = self.get_assets_path('fonts')
 
-        return pygame.font.Font (os.path.join (path, filename), size)
+        return pygame.font.Font(os.path.join(path, filename), size)
 
-    def on_quit (self):
+    def on_quit(self):
         return True
 
 
 if __name__ == "__main__":
-    app = Spacerocks ()
-    app.run ()
-
-
-
+    app = Spacerocks()
+    app.run()

@@ -1,6 +1,4 @@
-
-def clamp_point_to_rect (pt, rect):
-
+def clamp_point_to_rect(pt, rect):
     x = pt[0]
     y = pt[1]
 
@@ -12,9 +10,10 @@ def clamp_point_to_rect (pt, rect):
     if y < rect.top:
         y = rect.bottom + (y - rect.top)
     elif y > rect.bottom:
-        y = rect.top  + (y - rect.bottom)
+        y = rect.top + (y - rect.bottom)
 
-    return (x, y)
+    return x, y
 
-def clamp (n, min_value, max_value):
-    return min (max (n, min_value), max_value)
+
+def clamp(n, min_value, max_value):
+    return min(max(n, min_value), max_value)

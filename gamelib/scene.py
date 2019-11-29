@@ -2,8 +2,8 @@ import gamelib
 import pygame
 import abc
 
-_DEBUG_SPRITE_BOUNDS        = gamelib._DEBUG_SCENE and True
-_DEBUG_SPRITE_COLLISION     = gamelib._DEBUG_SCENE and True
+_DEBUG_SPRITE_BOUNDS        = gamelib.DEBUG_SCENE and True
+_DEBUG_SPRITE_COLLISION     = gamelib.DEBUG_SCENE and True
 
 class Scene (object):
 
